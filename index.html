@@ -4,14 +4,118 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#000000" />
-    <meta name="description" content="A recreation of the 2021 photo editing screen." />
-    <title>Photo editor</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%226%22 fill=%22%23000000%22/%3E%3Cpath d=%22M8 4v18a2 2 0 0 0 2 2h18M4 8h18a2 2 0 0 1 2 2v18%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222%22/%3E%3C/svg%3E" />
+    <meta name="description" content="Edit photos with the filters and stickers from Twitter's 2021 app." />
+    <title>Twitter photo editor</title>
+    <link rel="icon" href="./assets/icons/photo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./index.css" />
   </head>
   <body class="page">
-    <div class="application"></div>
-    <script defer src="./core.js"></script>
-    <script defer src="./index.js"></script>
+    <div class="application">
+      <main class="editor">
+        <header class="topbar">
+          <button class="backbutton button" type="button" aria-label="Back to sample">
+            <span class="icon iconback" aria-hidden="true"></span>
+            <span class="backlabel">Back</span>
+          </button>
+          <h1 class="title">Edit photo</h1>
+          <button class="openbutton button" type="button" aria-label="Open another image" title="Open another image">
+            <span class="icon iconphoto" aria-hidden="true"></span>
+          </button>
+          <button class="donebutton button" type="button">Done</button>
+        </header>
+        <section class="workspace" aria-label="Photo preview">
+          <div class="canvasbox">
+            <canvas class="photocanvas" aria-label="Edited photo"></canvas>
+            <div class="cropguide off"></div>
+            <div class="stickerlayers"></div>
+            <div class="dropnotice off">Drop an image to edit it</div>
+          </div>
+        </section>
+        <div class="selectionbar off" aria-label="Selected sticker controls">
+          <span class="selectionname"></span>
+          <button class="smallcontrol button rotatesticker" type="button" aria-label="Rotate sticker" title="Rotate sticker">
+            <span class="icon iconrotate" aria-hidden="true"></span>
+          </button>
+          <input class="stickersize input" type="range" min="8" max="72" value="27" aria-label="Sticker size" />
+          <button class="smallcontrol button removesticker" type="button" aria-label="Remove sticker" title="Remove sticker">
+            <span class="icon icontrash" aria-hidden="true"></span>
+          </button>
+        </div>
+        <section class="filterpanel off" aria-label="Filters">
+          <div class="filterstrip"></div>
+          <label class="intensityrow">
+            <span>Intensity</span>
+            <input class="intensity input" type="range" min="0" max="100" value="100" aria-label="Filter intensity" />
+            <span class="intensityvalue">100</span>
+          </label>
+        </section>
+        <section class="croppanel off" aria-label="Crop image">
+          <div class="cropchoices">
+            <button class="cropchoice button" type="button" data-crop="Original" aria-pressed="true">
+              <span class="icon iconoriginal" aria-hidden="true"></span>
+              <span>Original</span>
+            </button>
+            <button class="cropchoice button" type="button" data-crop="Wide" aria-pressed="false">
+              <span class="icon iconwide" aria-hidden="true"></span>
+              <span>Wide</span>
+            </button>
+            <button class="cropchoice button" type="button" data-crop="Square" aria-pressed="false">
+              <span class="icon iconsquare" aria-hidden="true"></span>
+              <span>Square</span>
+            </button>
+            <button class="rotatebutton button" type="button" aria-label="Rotate image clockwise">
+              <span class="icon iconrotate" aria-hidden="true"></span>
+              <span>Rotate</span>
+            </button>
+          </div>
+        </section>
+        <section class="altpanel off" aria-label="Image description">
+          <div class="panelheading">Add alt-text</div>
+          <textarea class="altinput textarea" maxlength="1000" placeholder="Describe this image" aria-label="Image description"></textarea>
+          <span class="altcount">0/1000</span>
+        </section>
+        <section class="stickerpanel off" aria-label="Sticker picker">
+          <div class="stickersearch">
+            <span class="icon iconsearch" aria-hidden="true"></span>
+            <input class="searchinput input" type="search" placeholder="Search stickers" aria-label="Search stickers" />
+            <button class="clearsearch button off" type="button" aria-label="Clear search">
+              <span class="icon iconclose" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="categorystrip" aria-label="Sticker categories"></div>
+          <div class="variantstrip off" aria-label="Sticker variations"></div>
+          <div class="stickergallery"></div>
+          <div class="stickerstate off"></div>
+        </section>
+        <footer class="footer">
+          <nav class="toolbar" aria-label="Photo editing tools">
+            <button class="toolbutton button" type="button" data-tool="enhance" aria-label="Enhance" aria-pressed="false" title="Enhance">
+              <span class="icon iconenhance" aria-hidden="true"></span>
+            </button>
+            <button class="toolbutton button" type="button" data-tool="filters" aria-label="Filters" aria-pressed="false" title="Filters">
+              <span class="icon iconfilter" aria-hidden="true"></span>
+            </button>
+            <button class="toolbutton button" type="button" data-tool="crop" aria-label="Crop" aria-pressed="false" title="Crop">
+              <span class="icon iconcrop" aria-hidden="true"></span>
+            </button>
+            <button class="toolbutton button" type="button" data-tool="sticker" aria-label="Stickers" aria-pressed="false" title="Stickers">
+              <span class="icon iconsticker" aria-hidden="true"></span>
+            </button>
+            <button class="toolbutton button" type="button" data-tool="alt" aria-label="Alt text" aria-pressed="false" title="Alt text">
+              <span class="icon iconalt" aria-hidden="true">ALT</span>
+            </button>
+          </nav>
+        </footer>
+        <input class="fileinput input" type="file" accept="image/*" aria-label="Choose an image" />
+        <div class="toast off" role="status"></div>
+      </main>
+    </div>
+    <script defer src="./src/state.js"></script>
+    <script defer src="./src/filters.js"></script>
+    <script defer src="./src/stickers.js"></script>
+    <script defer src="./src/images.js"></script>
+    <script defer src="./src/render.js"></script>
+    <script defer src="./src/controls.js"></script>
+    <script defer src="./src/app.js"></script>
   </body>
 </html>
