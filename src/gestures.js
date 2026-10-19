@@ -275,31 +275,50 @@
     };
     window.addEventListener("pointerup", stopdrag);
     window.addEventListener("pointercancel", stopdrag);
+    const dropnotice = document.querySelector(".dropnotice");
+    const setfiledrag = (active) => {
+      if (state.dragover === active) return;
+      state.dragover = active;
+      editor.root.classList.toggle("dragging", active);
+      dropnotice.classList.toggle("off", !active);
+    };
     window.addEventListener("blur", () => {
       state.pointer = null;
       state.cropdrag = null;
       state.croppointers.clear();
       state.croppinch = null;
+      setfiledrag(false);
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) setfiledrag(false);
     });
     window.addEventListener("resize", () => editor.layoutpreview());
 
     editor.root.addEventListener("dragover", (event) => {
+      const transfer = event.dataTransfer;
+      const hasfiles = Boolean(transfer && (
+        Array.from(transfer.types || []).includes("Files") || transfer.files?.length
+      ));
+      if (!hasfiles) {
+        setfiledrag(false);
+        return;
+      }
       event.preventDefault();
-      state.dragover = true;
-      editor.root.classList.add("dragging");
-      document.querySelector(".dropnotice").classList.remove("off");
+      setfiledrag(true);
     });
     editor.root.addEventListener("dragleave", (event) => {
-      if (event.target === editor.root) {
-        state.dragover = false;
-        editor.root.classList.remove("dragging");
-        document.querySelector(".dropnotice").classList.add("off");
-      }
+      const bounds = editor.root.getBoundingClientRect();
+      if (
+        event.clientX <= bounds.left || event.clientX >= bounds.right ||
+        event.clientY <= bounds.top || event.clientY >= bounds.bottom
+      ) setfiledrag(false);
     });
     editor.root.addEventListener("drop", (event) => {
+      const file = event.dataTransfer?.files?.[0];
+      setfiledrag(false);
+      if (!file) return;
       event.preventDefault();
-      state.dragover = false;
-      editor.openfile(event.dataTransfer.files?.[0]);
+      editor.openfile(file);
     });
     window.addEventListener("keydown", (event) => {
       const editing = event.target instanceof HTMLElement && ["INPUT", "TEXTAREA"].includes(event.target.tagName);
