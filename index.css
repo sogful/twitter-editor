@@ -277,7 +277,6 @@
 .stickerlayer {
   position: absolute;
   z-index: 3; display: flex;
-  min-width: 38px; min-height: 38px;
   align-items: center; justify-content: center;
   cursor: grab; pointer-events: auto;
   touch-action: none;
@@ -286,7 +285,8 @@
 
 .stickerlayer.selected::after {
   position: absolute;
-  inset: 0; box-sizing: border-box;
+  inset: var(--stickertop, 0%) var(--stickerright, 0%) var(--stickerbottom, 0%) var(--stickerleft, 0%);
+  box-sizing: border-box;
   border: 2px solid white;
   content: ""; pointer-events: none;
 }
@@ -294,7 +294,8 @@
 .stickerhandle {
   position: absolute; z-index: 1;
   display: none;
-  width: 30px; height: 30px;
+  width: 15%; aspect-ratio: 1;
+  min-width: 14px; min-height: 14px;
   place-items: center; padding: 0;
   transform: translate(-50%, -50%);
   border: 1px solid black;
@@ -313,7 +314,7 @@
 .stickerhandletopleft, .stickerhandlebottomleft {cursor: pointer}
 .stickerhandletopright {cursor: grab}
 .stickerhandlebottomright {cursor: nwse-resize}
-.stickerhandle .icon {width: 17px; height: 17px}
+.stickerhandle .icon {width: 58%; height: 58%}
 
 .stickerimage {
   display: block;

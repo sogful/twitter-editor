@@ -50,6 +50,13 @@
     const canvasbox = document.querySelector(".canvasbox");
     const layers = document.querySelector(".stickerlayers");
     const input = document.querySelector(".fileinput");
+    canvasbox.addEventListener("pointerdown", (event) => {
+      if (!state.selectedsticker || event.target.closest(".stickerlayer")) return;
+      state.selectedsticker = "";
+      state.selectedgroup = null;
+      editor.renderlayers();
+      editor.rendervariants();
+    });
     for (const strip of document.querySelectorAll(".filterstrip,.categorystrip,.variantstrip")) {
       editor.bindhorizontal(strip);
     }
@@ -181,6 +188,7 @@
       for (const current of document.querySelectorAll(".stickerlayer")) {
         current.classList.toggle("selected", current === layer);
       }
+      editor.setstickeroutline(layer, layer.querySelector(".stickerimage"));
       try {
         layers.setPointerCapture(event.pointerId);
       } catch {}

@@ -8,14 +8,61 @@
 
   editor.makeicon = (classname) => editor.createelement("span", `icon ${classname}`);
 
-  editor.makeimage = (url, classname, alt) => {
+  editor.makeimage = (url, classname, alt, crossorigin = false) => {
     if (!url) return null;
     const image = document.createElement("img");
     image.className = classname;
+    if (crossorigin) image.crossOrigin = "anonymous";
     image.src = url;
     image.alt = alt || "";
     image.draggable = false;
     return image;
+  };
+
+  editor.stickeralphabounds = new Map();
+
+  editor.setstickeroutline = (layer, image) => {
+    if (!image?.complete || !image.naturalWidth || !image.naturalHeight) return;
+    const source = image.currentSrc || image.src;
+    let bounds = editor.stickeralphabounds.get(source);
+    if (!bounds) {
+      const size = 160;
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d", {willReadFrequently: true});
+      canvas.width = size;
+      canvas.height = size;
+      try {
+        context.drawImage(image, 0, 0, size, size);
+        const pixels = context.getImageData(0, 0, size, size).data;
+        let left = size;
+        let top = size;
+        let right = -1;
+        let bottom = -1;
+        for (let y = 0; y < size; y += 1) {
+          for (let x = 0; x < size; x += 1) {
+            if (pixels[(y * size + x) * 4 + 3] < 12) continue;
+            left = Math.min(left, x);
+            top = Math.min(top, y);
+            right = Math.max(right, x);
+            bottom = Math.max(bottom, y);
+          }
+        }
+        if (right < left || bottom < top) return;
+        bounds = {
+          left: left / size * 100,
+          top: top / size * 100,
+          right: (size - right - 1) / size * 100,
+          bottom: (size - bottom - 1) / size * 100
+        };
+        editor.stickeralphabounds.set(source, bounds);
+      } catch {
+        return;
+      }
+    }
+    layer.style.setProperty("--stickerleft", `${bounds.left}%`);
+    layer.style.setProperty("--stickertop", `${bounds.top}%`);
+    layer.style.setProperty("--stickerright", `${bounds.right}%`);
+    layer.style.setProperty("--stickerbottom", `${bounds.bottom}%`);
   };
 
   /*//////////////////////////////////////////////////////////////////////*/
@@ -239,7 +286,7 @@
     layers.replaceChildren();
     for (const item of state.stickers) {
       const layer = editor.createelement("div", "stickerlayer");
-      const image = editor.makeimage(editor.imageurl(item.sticker, "size_3x"), "stickerimage", item.sticker.display_name);
+      const image = editor.makeimage(editor.imageurl(item.sticker, "size_3x"), "stickerimage", item.sticker.display_name, true);
       layer.dataset.key = item.key;
       layer.setAttribute("aria-label", item.sticker.display_name);
       layer.classList.toggle("selected", item.key === state.selectedsticker);
@@ -250,6 +297,7 @@
       if (image) {
         const setratio = () => {
           if (image.naturalWidth && image.naturalHeight) layer.style.aspectRatio = `${image.naturalWidth} / ${image.naturalHeight}`;
+          editor.setstickeroutline(layer, image);
         };
         image.addEventListener("load", setratio, {once: true});
         setratio();
