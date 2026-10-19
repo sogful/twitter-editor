@@ -27,7 +27,7 @@
         const image = new Image();
         image.onload = () => resolve(image);
         image.onerror = () => reject(new Error("The filter lookups could not be loaded."));
-        image.src = "./assets/filters/filter_raven.png";
+        image.src = "./assets/images/filters/filter_raven.png";
       });
       editor.filterlutpromises.set(name, promise);
       return promise;
@@ -37,7 +37,7 @@
         const image = new Image();
         image.onload = () => resolve(image);
         image.onerror = () => reject(new Error("The filter lookups could not be loaded."));
-        image.src = "./assets/filters/filter_atlas.png";
+        image.src = "./assets/images/filters/filter_atlas.png";
       });
     }
     const promise = editor.filteratlas.then((image) => {
