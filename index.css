@@ -1,0 +1,573 @@
+.editor {
+  position: relative; width: 100%;
+  height: 100%; min-height: 360px;
+  overflow: hidden; background: #000000;
+}
+
+.topbar {
+  position: absolute; z-index: 2;
+  top: 0; left: 0;
+  display: flex; align-items: center;
+  width: 100%; height: 60px;
+  padding: 0 24px; gap: 20px;
+}
+
+.topbar .button,
+.toolbar .button,
+.smallcontrol,
+.closebutton {
+  display: inline-flex; align-items: center;
+  justify-content: center; border: 0;
+  background: transparent; color: #ffffff;
+  cursor: pointer;
+}
+
+.backbutton {
+  display: inline-flex; align-items: center;
+  padding: 8px 4px; gap: 8px;
+  font-size: 15px;
+}
+
+.topbarspace {
+  flex: 1;
+}
+
+.openbutton {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+}
+
+.openbutton:hover,
+.smallcontrol:hover,
+.closebutton:hover {
+  background: #202327;
+}
+
+.donebutton {
+  min-width: 76px; height: 36px;
+  padding: 0 16px; border: 0;
+  border-radius: 999px; background: #eff3f4;
+  color: #0f1419; cursor: pointer;
+  font-size: 14px; font-weight: 700;
+}
+
+.donebutton:disabled {
+  opacity: 0.55; cursor: wait;
+}
+
+.workspace {
+  position: absolute; inset: 60px 0 92px;
+  display: flex; align-items: center;
+  justify-content: center; padding: 12px 24px;
+}
+
+.canvasbox {
+  position: relative; max-width: 100%;
+  max-height: 100%; overflow: hidden;
+  background: #101214; touch-action: none;
+  user-select: none;
+}
+
+.photoimage {
+  display: block; width: 100%;
+  height: 100%; pointer-events: none;
+}
+
+.photoimage.contain {
+  object-fit: contain;
+}
+
+.photoimage.cover {
+  object-fit: cover;
+}
+
+.stickerlayer {
+  position: absolute; z-index: 1;
+  display: flex; align-items: center;
+  justify-content: center; min-width: 38px;
+  min-height: 38px; aspect-ratio: 1;
+  cursor: grab; touch-action: none;
+}
+
+.stickerlayer:active {
+  cursor: grabbing;
+}
+
+.stickerlayer.selected::after {
+  position: absolute; inset: -3px;
+  border: 1px dashed rgba(255,255,255,0.75); border-radius: 8px;
+  content: ""; pointer-events: none;
+}
+
+.stickerimage {
+  display: block; width: 100%;
+  height: 100%; object-fit: contain;
+  pointer-events: none;
+}
+
+.stickerremove {
+  position: absolute; z-index: 2;
+  top: -12px; right: -12px;
+  display: grid; width: 24px;
+  height: 24px; place-items: center;
+  padding: 0; border: 1px solid #ffffff;
+  border-radius: 50%; background: #1d9bf0;
+  color: #ffffff; cursor: pointer;
+}
+
+.altbadge {
+  position: absolute; right: 8px;
+  bottom: 8px; padding: 3px 6px;
+  border-radius: 4px; background: rgba(0,0,0,0.72);
+  color: #ffffff; font-size: 10px;
+  font-weight: 700;
+}
+
+.dropnotice {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  border: 2px dashed #1d9bf0; background: rgba(0,0,0,0.55);
+  color: #ffffff; font-size: 18px;
+}
+
+.editor.dragging .canvasbox {
+  outline: 2px solid #1d9bf0; outline-offset: 6px;
+}
+
+.footer {
+  position: absolute; z-index: 2;
+  right: 0; bottom: 0;
+  left: 0; display: flex;
+  justify-content: center; min-height: 78px;
+  padding: 6px 16px max(8px, env(safe-area-inset-bottom)); background: #000000;
+}
+
+.toolbar {
+  display: flex; align-items: center;
+  justify-content: space-between; width: min(100%, 570px);
+  gap: 12px;
+}
+
+.toolbutton {
+  display: flex; flex: 1;
+  flex-direction: column; align-items: center;
+  justify-content: center; min-width: 48px;
+  height: 62px; padding: 6px 4px;
+  border-radius: 12px; color: #8b98a5;
+  cursor: pointer;
+}
+
+.toolbutton::after {
+  margin-top: 5px; color: #8b98a5;
+  content: attr(aria-label); font-size: 10px;
+  white-space: nowrap;
+}
+
+.toolbutton.active,
+.toolbutton.active::after {
+  color: #1d9bf0;
+}
+
+.toolbutton:hover {
+  background: #14171a;
+}
+
+.filterpanel,
+.croppanel,
+.altpanel {
+  position: absolute; z-index: 3;
+  bottom: 88px; left: 50%;
+  width: min(620px, calc(100vw - 32px)); transform: translateX(-50%);
+  border: 1px solid #2f3336; border-radius: 18px;
+  background: #16181c; box-shadow: 0 12px 42px rgba(0,0,0,0.5);
+}
+
+.filterpanel {
+  padding: 14px 16px 12px;
+}
+
+.filterstrip {
+  display: flex; overflow-x: auto;
+  gap: 12px; scrollbar-width: none;
+}
+
+.filterstrip::-webkit-scrollbar,
+.categorystrip::-webkit-scrollbar,
+.stickergallery::-webkit-scrollbar,
+.variantstrip::-webkit-scrollbar {
+  display: none;
+}
+
+.filtertile {
+  display: flex; flex: 0 0 66px;
+  flex-direction: column; align-items: center;
+  padding: 0; border: 0;
+  background: transparent; color: #e7e9ea;
+  cursor: pointer;
+}
+
+.filterpreview {
+  display: block; width: 60px;
+  height: 60px; overflow: hidden;
+  border: 2px solid transparent; border-radius: 10px;
+  background: #25282c;
+}
+
+.filtertile.selected .filterpreview {
+  border-color: #1d9bf0;
+}
+
+.filterpreview .filterimage {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+.filtername {
+  max-width: 72px; overflow: hidden;
+  margin-top: 6px; font-size: 10px;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+
+.intensityrow {
+  display: flex; align-items: center;
+  margin-top: 14px; gap: 12px;
+  color: #e7e9ea; font-size: 13px;
+}
+
+.intensityrow .input,
+.stickersize {
+  flex: 1; accent-color: #1d9bf0;
+}
+
+.intensityvalue {
+  width: 28px; color: #8b98a5;
+  text-align: right;
+}
+
+.croppanel {
+  max-width: 440px; padding: 12px;
+}
+
+.cropchoices {
+  display: flex; align-items: stretch;
+  justify-content: space-around; gap: 6px;
+}
+
+.cropchoice,
+.rotatebutton {
+  display: flex; flex: 1;
+  flex-direction: column; align-items: center;
+  justify-content: center; min-height: 70px;
+  gap: 6px; border: 0;
+  border-radius: 12px; background: transparent;
+  color: #cfd9de; cursor: pointer;
+  font-size: 12px;
+}
+
+.cropchoice.selected {
+  background: #202b35; color: #1d9bf0;
+}
+
+.cropchoice .icon {
+  stroke-width: 1.6;
+}
+
+.rotatebutton:hover,
+.cropchoice:hover {
+  background: #202327;
+}
+
+.altpanel {
+  max-width: 420px; padding: 16px;
+}
+
+.panelheading {
+  margin-bottom: 10px; color: #e7e9ea;
+  font-size: 14px; font-weight: 700;
+}
+
+.altinput {
+  width: 100%; min-height: 90px;
+  resize: vertical; padding: 10px 12px;
+  border: 1px solid #536471; border-radius: 8px;
+  background: #000000; color: #ffffff;
+  font-size: 14px;
+}
+
+.altcount {
+  display: block; margin-top: 6px;
+  color: #8b98a5; font-size: 12px;
+  text-align: right;
+}
+
+.selectionbar {
+  position: absolute; z-index: 3;
+  top: 66px; left: 50%;
+  display: flex; align-items: center;
+  width: min(430px, calc(100vw - 32px)); min-height: 48px;
+  padding: 5px 8px 5px 14px; gap: 10px;
+  transform: translateX(-50%); border: 1px solid #2f3336;
+  border-radius: 999px; background: rgba(22,24,28,0.96);
+}
+
+.selectionname {
+  flex: 1; overflow: hidden;
+  color: #e7e9ea; font-size: 12px;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+
+.smallcontrol {
+  width: 34px; height: 34px;
+  flex: 0 0 auto; border-radius: 50%;
+}
+
+.stickersize {
+  max-width: 130px;
+}
+
+.stickerpicker {
+  position: fixed; z-index: 5;
+  inset: 0; pointer-events: none;
+}
+
+.stickerbackdrop {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: 0; background: rgba(0,0,0,0.58);
+  pointer-events: auto;
+}
+
+.stickerpanel {
+  position: absolute; right: 0;
+  bottom: 0; left: 0;
+  display: flex; flex-direction: column;
+  height: min(76vh, 650px); padding: 14px max(16px, calc((100vw - 720px) / 2)) max(16px, env(safe-area-inset-bottom));
+  border-top: 1px solid #2f3336; border-radius: 20px 20px 0 0;
+  background: #16181c; box-shadow: 0 -12px 48px rgba(0,0,0,0.42);
+  pointer-events: auto;
+}
+
+.stickersearch {
+  display: flex; align-items: center;
+  min-height: 44px; padding: 0 10px;
+  gap: 8px; border-radius: 999px;
+  background: #202327; color: #8b98a5;
+}
+
+.stickersearch .searchinput {
+  width: 100%; border: 0;
+  outline: 0; background: transparent;
+  color: #ffffff; font-size: 14px;
+}
+
+.stickersearch .searchinput::placeholder {
+  color: #8b98a5;
+}
+
+.closebutton {
+  width: 32px; height: 32px;
+  flex: 0 0 auto; border-radius: 50%;
+}
+
+.categorystrip {
+  display: flex; overflow-x: auto;
+  padding: 12px 0 6px; gap: 8px;
+  scrollbar-width: none;
+}
+
+.categorybutton {
+  display: flex; flex: 0 0 72px;
+  flex-direction: column; align-items: center;
+  min-height: 70px; padding: 8px 4px;
+  gap: 5px; border: 0;
+  border-radius: 12px; background: transparent;
+  color: #8b98a5; cursor: pointer;
+  font-size: 10px; text-align: center;
+}
+
+.categorybutton.selected {
+  background: #202b35; color: #1d9bf0;
+}
+
+.categoryicon {
+  width: 30px; height: 30px;
+  object-fit: contain;
+}
+
+.stickergallery {
+  display: grid; overflow-y: auto;
+  flex: 1; align-content: start;
+  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); padding: 10px 0 20px;
+  gap: 8px; scrollbar-width: thin;
+}
+
+.stickerchoice {
+  display: grid; min-width: 0;
+  aspect-ratio: 1; place-items: center;
+  padding: 8px; border: 1px solid transparent;
+  border-radius: 12px; background: transparent;
+  cursor: pointer;
+}
+
+.stickerchoice:hover,
+.stickerchoice.selected {
+  border-color: #1d9bf0; background: #202b35;
+}
+
+.stickerthumb {
+  display: block; width: 100%;
+  height: 100%; object-fit: contain;
+}
+
+.variantstrip {
+  display: flex; overflow-x: auto;
+  align-items: center; min-height: 72px;
+  padding: 5px 0; gap: 6px;
+  border-bottom: 1px solid #2f3336; scrollbar-width: none;
+}
+
+.variantlabel {
+  flex: 0 0 120px; overflow: hidden;
+  color: #8b98a5; font-size: 11px;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+
+.variantstrip .stickerchoice {
+  width: 56px; height: 56px;
+  flex: 0 0 56px;
+}
+
+.stickerstate {
+  display: grid; flex: 1;
+  place-items: center; color: #8b98a5;
+  font-size: 14px;
+}
+
+.fileinput {
+  display: none;
+}
+
+.toast {
+  position: absolute; z-index: 8;
+  bottom: 96px; left: 50%;
+  max-width: calc(100vw - 32px); padding: 11px 16px;
+  transform: translateX(-50%); border-radius: 8px;
+  background: #eff3f4; color: #0f1419;
+  font-size: 13px; box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    height: 54px; padding: 0 14px;
+  }
+
+  .workspace {
+    inset: 54px 0 82px; padding: 8px 10px;
+  }
+
+  .footer {
+    min-height: 72px; padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .toolbar {
+    gap: 2px;
+  }
+
+  .toolbutton {
+    height: 60px;
+  }
+
+  .toolbutton::after {
+    font-size: 9px;
+  }
+
+  .filterpanel,
+  .croppanel,
+  .altpanel {
+    bottom: 78px;
+  }
+
+  .filterpanel {
+    padding: 12px 10px 10px;
+  }
+
+  .filterstrip {
+    gap: 7px;
+  }
+
+  .filtertile {
+    flex-basis: 60px;
+  }
+
+  .filterpreview {
+    width: 54px; height: 54px;
+  }
+
+  .selectionbar {
+    top: 58px;
+  }
+
+  .stickerpanel {
+    height: min(82vh, 650px); padding-right: 14px;
+    padding-left: 14px;
+  }
+}
+
+@media (max-height: 520px) {
+  .workspace {
+    inset: 46px 0 70px;
+  }
+
+  .topbar {
+    height: 46px;
+  }
+
+  .footer {
+    min-height: 62px;
+  }
+
+  .toolbutton {
+    height: 54px;
+  }
+
+  .filterpanel,
+  .croppanel,
+  .altpanel {
+    bottom: 66px;
+  }
+}
+
+/*//////////////////////////////////////////////////////////////////////*/
+
+.element {
+  box-sizing: border-box;
+}
+
+.page,
+.application {
+  width: 100%; height: 100%;
+  margin: 0;
+}
+
+.page {
+  overflow: hidden; background: #000000;
+  color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.button,
+.input,
+.textarea {
+  font: inherit;
+}
+
+.button {
+  color: inherit;
+}
+
+.button:focus-visible,
+.input:focus-visible,
+.textarea:focus-visible {
+  outline: 2px solid #1d9bf0; outline-offset: 3px;
+}
