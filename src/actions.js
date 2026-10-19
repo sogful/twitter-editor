@@ -63,6 +63,7 @@
 
   editor.handletool = (name) => {
     const state = editor.state;
+    editor.dismissvariantmenu();
     if (name === "enhance") {
       editor.discardpendingsticker();
       editor.pushhistory();
@@ -91,6 +92,7 @@
   editor.discardpendingsticker = () => {
     const state = editor.state;
     if (!state.pendingsticker) return false;
+    editor.stickerpreviews.delete(state.pendingsticker);
     state.stickers = state.stickers.filter((item) => item.key !== state.pendingsticker);
     if (state.pendingstickerhistory) {
       state.historyback = state.pendingstickerhistory.back;
@@ -105,6 +107,7 @@
 
   editor.confirmsticker = () => {
     const state = editor.state;
+    editor.dismissvariantmenu();
     state.pendingsticker = "";
     state.pendingstickerhistory = null;
     state.selectedsticker = "";
@@ -119,8 +122,9 @@
     } catch {}
   };
 
-  editor.insertsticker = (sticker, keepopen = false) => {
+  editor.insertsticker = (sticker, keepopen = false, previewimage = null) => {
     const state = editor.state;
+    editor.dismissvariantmenu();
     if (state.pendingsticker) {
       state.pendingsticker = "";
       state.pendingstickerhistory = null;
@@ -129,6 +133,10 @@
     editor.pushhistory();
     const key = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}${Math.random()}`;
     state.stickers.push({key, sticker, x: 50, y: 50, size: 27, rotation: 0});
+    if (previewimage) {
+      editor.stickerpreviews.set(key, previewimage);
+      editor.invalidategallery();
+    }
     state.selectedsticker = key;
     state.pendingsticker = key;
     state.pendingstickerhistory = pendinghistory;
@@ -154,11 +162,22 @@
     editor.render();
   };
 
-  editor.chooseitem = (item) => {
+  editor.chooseitem = (item, anchor) => {
     const variants = item.variant_stickers || [];
-    editor.state.selectedgroup = item;
-    editor.insertsticker(item.sticker, variants.length > 0);
-    if (variants.length > 0) editor.state.selectedgroup = item;
+    const state = editor.state;
+    if (variants.length) {
+      if (state.variantitem?.sticker.id === item.sticker.id) {
+        editor.dismissvariantmenu();
+      } else {
+        state.variantitem = item;
+        state.variantanchor = anchor || null;
+        editor.rendervariants();
+      }
+      return;
+    }
+    editor.dismissvariantmenu();
+    state.selectedgroup = null;
+    editor.insertsticker(item.sticker, false, anchor?.querySelector(".stickerthumb") || null);
   };
 
   editor.removeselected = () => {
@@ -171,6 +190,7 @@
     }
     editor.pushhistory();
     state.stickers = state.stickers.filter((item) => item.key !== state.selectedsticker);
+    editor.stickerpreviews.delete(state.selectedsticker);
     state.selectedsticker = "";
     editor.render();
   };
@@ -179,6 +199,7 @@
 
   editor.canceltool = () => {
     const state = editor.state;
+    editor.dismissvariantmenu();
     if (state.tool === "crop" && state.cropstickers) {
       state.stickers = state.cropstickers.map((item) => ({...item}));
       state.cropstickers = null;

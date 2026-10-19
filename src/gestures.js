@@ -57,9 +57,13 @@
       editor.renderlayers();
       editor.rendervariants();
     });
-    for (const strip of document.querySelectorAll(".filterstrip,.categorystrip,.variantstrip")) {
+    for (const strip of document.querySelectorAll(".filterstrip,.categorystrip,.variantpopover")) {
       editor.bindhorizontal(strip);
     }
+    document.querySelector(".stickerpanel").addEventListener("click", (event) => {
+      if (!state.variantitem || event.target.closest(".variantpopover,.stickerchoice")) return;
+      editor.dismissvariantmenu();
+    });
     document.querySelector(".cropguide").addEventListener("pointerdown", (event) => {
       if (state.tool !== "crop" || event.button !== 0 || !state.croprect) return;
       event.preventDefault();
@@ -139,10 +143,8 @@
       const anchory = Math.max(0, Math.min(1, (event.clientY - box.top) / box.height));
       state.cropview = editor.panzoomcropview(
         state.cropview,
-        anchorx,
-        anchory,
-        anchorx,
-        anchory,
+        anchorx, anchory,
+        anchorx, anchory,
         state.cropview.scale * (event.deltaY < 0 ? 1.12 : 1 / 1.12)
       );
       editor.rendercropview();
@@ -176,19 +178,16 @@
         pointer: event.pointerId,
         mode: handle === "move" ? "move" : handle === "topright" ? "rotate" : "resize",
         handle,
-        x: event.clientX,
-        y: event.clientY,
+        x: event.clientX, y: event.clientY,
         startangle: angle,
         startrotation: item.rotation,
-        startx: item.x,
-        starty: item.y,
+        startx: item.x, starty: item.y,
         startsize: item.size
       };
       state.selectedsticker = item.key;
       for (const current of document.querySelectorAll(".stickerlayer")) {
         current.classList.toggle("selected", current === layer);
       }
-      editor.setstickeroutline(layer, layer.querySelector(".stickerimage"));
       try {
         layers.setPointerCapture(event.pointerId);
       } catch {}
@@ -209,11 +208,8 @@
             const scale = state.croppinch.view.scale * distance / Math.max(1, state.croppinch.distance);
             state.cropview = editor.panzoomcropview(
               state.croppinch.view,
-              state.croppinch.x,
-              state.croppinch.y,
-              targetx,
-              targety,
-              scale
+              state.croppinch.x, state.croppinch.y,
+              targetx, targety, scale
             );
             editor.rendercropview();
           }
@@ -226,13 +222,16 @@
       const box = canvasbox.getBoundingClientRect();
       const item = state.stickers.find((sticker) => sticker.key === drag.key);
       const layer = document.querySelector(`.stickerlayer[data-key="${drag.key}"]`);
-      if (!item || !layer || !box.width || !box.height) return;
+      const art = document.querySelector(`.stickerart[data-key="${drag.key}"]`);
+      if (!item || !layer || !art || !box.width || !box.height) return;
       event.preventDefault();
       if (drag.mode === "move") {
         item.x = Math.max(0, Math.min(100, drag.startx + ((event.clientX - drag.x) / box.width) * 100));
         item.y = Math.max(0, Math.min(100, drag.starty + ((event.clientY - drag.y) / box.height) * 100));
-        layer.style.left = `${item.x}%`;
-        layer.style.top = `${item.y}%`;
+        for (const current of [layer, art]) {
+          current.style.left = `${item.x}%`;
+          current.style.top = `${item.y}%`;
+        }
         return;
       }
       if (drag.mode === "rotate") {
@@ -243,6 +242,7 @@
         if (delta < -180) delta += 360;
         item.rotation = drag.startrotation + delta;
         layer.style.transform = `translate(-50%, -50%) rotate(${item.rotation}deg)`;
+        art.style.transform = `translate(-50%, -50%) rotate(${item.rotation}deg)`;
         return;
       }
       const directionx = drag.handle.includes("left") ? -1 : drag.handle.includes("right") ? 1 : 0;
@@ -255,6 +255,7 @@
       const delta = changes.reduce((sum, value) => sum + value, 0) / changes.length;
       item.size = Math.max(38 / box.width * 100, Math.min(95, drag.startsize + delta / box.width * 100));
       layer.style.width = `${item.size}%`;
+      art.style.width = `${item.size}%`;
     });
 
     const stopdrag = (event) => {
@@ -316,7 +317,8 @@
         }
       }
       if (event.key === "Escape") {
-        if (state.tool) editor.canceltool();
+        if (state.variantitem) editor.dismissvariantmenu();
+        else if (state.tool) editor.canceltool();
         else {
           state.selectedsticker = "";
           editor.render();

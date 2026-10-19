@@ -5,7 +5,7 @@
     {fill: "#FFCC4D", d: "M28.394 23.999c.148 3.084-2.561 4.293-4.019 3.709-2.106-.843-1.541-2.291-2.083-5.291s-2.625-5.083-5.708-6c2.25 6.333-1.247 8.667-3.08 9.084-1.872.426-3.753-.001-3.968-4.007C7.352 23.668 6 26.676 6 30c0 .368.023.73.055 1.09C9.125 34.124 13.342 36 18 36s8.875-1.876 11.945-4.91c.032-.36.055-.722.055-1.09 0-2.187-.584-4.236-1.606-6.001z"}
   ];
   let categorycatalog = empty;
-  let variantgroup = empty;
+  let variantitem = empty;
   let gallerycategory = empty;
   let galleryitems = null;
   let galleryframe = 0;
@@ -53,6 +53,7 @@
         button.setAttribute("aria-label", item.name);
         button.append(image || editor.makeicon(item.icon), label);
         button.addEventListener("click", () => {
+          editor.dismissvariantmenu();
           state.category = item.id;
           state.selectedgroup = null;
           editor.renderstickers();
@@ -86,28 +87,66 @@
 
   editor.rendervariants = () => {
     const state = editor.state;
-    const strip = document.querySelector(".variantstrip");
-    if (!strip) return;
-    const group = state.selectedgroup;
-    if (variantgroup !== group) {
-      strip.replaceChildren();
-      const variants = group?.variant_stickers || [];
-      strip.classList.toggle("off", !variants.length);
-      if (variants.length) {
-        for (const sticker of [group.sticker, ...variants]) {
-          strip.append(
-            editor.createstickerbutton(sticker, false, () => editor.replacesticker(sticker))
-          );
-        }
+    const popup = document.querySelector(".variantpopover");
+    if (!popup) return;
+    if (variantitem !== state.variantitem) {
+      popup.replaceChildren();
+      if (state.variantitem) {
+        const tones = [state.variantitem.sticker, ...(state.variantitem.variant_stickers || [])];
+        const labels = ["yellow", "light", "medium light", "medium", "medium dark", "dark"];
+        tones.forEach((sticker, index) => {
+          const button = editor.createelement("button", "tonechoice button");
+          const image = editor.makeimage(editor.imageurl(sticker, "preview"), "tonepreview", "");
+          const label = tones.length > 6
+            ? index === 0
+              ? `${sticker.display_name}, yellow`
+              : `${sticker.display_name}, skin tone combination ${index} of ${tones.length - 1}`
+            : `${sticker.display_name}, ${labels[index] || `skin tone ${index}`}`;
+          button.type = "button";
+          button.title = label;
+          button.setAttribute("aria-label", label);
+          if (image) button.append(image);
+          button.addEventListener("click", () => editor.insertsticker(sticker, false, image));
+          popup.append(button);
+        });
       }
-      variantgroup = group;
+      variantitem = state.variantitem;
+      popup.classList.toggle("off", !state.variantitem);
     }
-    const current = state.stickers.find((item) => item.key === state.selectedsticker);
-    for (const button of strip.querySelectorAll(".stickerchoice")) {
-      const selected = String(current?.sticker.id) === button.dataset.stickerid;
-      button.classList.toggle("selected", selected);
-      button.setAttribute("aria-pressed", String(selected));
-    }
+    editor.positionvariants();
+  };
+
+  editor.dismissvariantmenu = () => {
+    const state = editor.state;
+    state.variantitem = null;
+    state.variantanchor = null;
+    variantitem = empty;
+    const popup = document.querySelector(".variantpopover");
+    popup?.replaceChildren();
+    popup?.classList.add("off");
+  };
+
+  editor.invalidategallery = () => {
+    galleryrange = {first: -1, last: -1, columns: 0, cell: 0, rowgap: 0};
+  };
+
+  editor.positionvariants = () => {
+    const state = editor.state;
+    const popup = document.querySelector(".variantpopover");
+    const panel = document.querySelector(".stickerpanel");
+    const anchor = state.variantanchor;
+    if (!popup || !panel || !state.variantitem || !anchor?.isConnected) return;
+    const panelbox = panel.getBoundingClientRect();
+    const anchorbox = anchor.getBoundingClientRect();
+    const width = popup.offsetWidth;
+    const height = popup.offsetHeight;
+    const left = Math.max(8, Math.min(panelbox.width - width - 8, anchorbox.left - panelbox.left + anchorbox.width / 2 - width / 2));
+    const below = anchorbox.bottom - panelbox.top + 6;
+    const top = below + height <= panelbox.height - 8
+      ? below
+      : Math.max(8, anchorbox.top - panelbox.top - height - 6);
+    popup.style.left = `${left}px`;
+    popup.style.top = `${top}px`;
   };
 
   /*//////////////////////////////////////////////////////////////////////*/
@@ -128,6 +167,7 @@
       galleryobserver = new ResizeObserver(schedule);
       galleryobserver.observe(gallery);
     }
+    window.addEventListener("resize", editor.positionvariants, {passive: true});
   };
 
   editor.updategalleryselection = (gallery) => {
@@ -159,6 +199,7 @@
     const last = Math.min(rows, Math.ceil((gallery.scrollTop + height) / rowstep) + 4);
     if (galleryrange.first === first && galleryrange.last === last && galleryrange.columns === columns && Math.abs(galleryrange.cell - cell) < 0.5 && galleryrange.rowgap === rowgap) {
       editor.updategalleryselection(gallery);
+      editor.positionvariants();
       return;
     }
     galleryrange = {first, last, columns, cell, rowgap};
@@ -177,12 +218,21 @@
       const item = items[index];
       if (!item?.sticker) continue;
       const sticker = item.sticker;
-      const button = editor.createstickerbutton(sticker, false, () => editor.chooseitem(item));
+      const button = editor.createstickerbutton(sticker, false, () => editor.chooseitem(item, button));
       fragment.append(button);
     }
     spacer(rows - last);
     gallery.replaceChildren(fragment);
     editor.updategalleryselection(gallery);
+    const anchor = editor.state.variantanchor;
+    if (editor.state.variantitem && !anchor?.isConnected) {
+      editor.dismissvariantmenu();
+    } else if (anchor?.isConnected) {
+      const bounds = anchor.getBoundingClientRect();
+      const viewport = gallery.getBoundingClientRect();
+      if (bounds.bottom <= viewport.top || bounds.top >= viewport.bottom) editor.dismissvariantmenu();
+      else editor.positionvariants();
+    }
   };
 
   /*//////////////////////////////////////////////////////////////////////*/

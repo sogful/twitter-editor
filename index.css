@@ -210,7 +210,7 @@
   position: relative;
   max-width: 100%;
   max-height: 100%;
-  overflow: hidden;
+  overflow: visible;
   background: #101214;
   touch-action: none;
   user-select: none;
@@ -218,6 +218,10 @@
 .cropstage {
   position: absolute; inset: 0;
   transform-origin: top left;
+}
+.photoclip {
+  position: absolute; inset: 0;
+  overflow: hidden;
 }
 
 .photocanvas {
@@ -270,18 +274,39 @@
 .editor.cropmode .canvasbox:active {cursor: grabbing}
 
 .stickerlayers {
-  position: absolute; inset: 0;
+  position: absolute; z-index: 4;
+  inset: 0; overflow: visible;
   pointer-events: none;
 }
 
 .stickerlayer {
   position: absolute;
-  z-index: 3; display: flex;
-  align-items: center; justify-content: center;
+  z-index: 4;
   cursor: grab; pointer-events: auto;
   touch-action: none;
 }
 .stickerlayer:active {cursor: grabbing}
+
+.stickerartlayers {
+  position: absolute; z-index: 3;
+  inset: 0; overflow: visible;
+  pointer-events: none;
+}
+.stickerart {
+  position: absolute;
+  display: block;
+  transform: translate(-50%, -50%) rotate(var(--stickerrotation, 0deg));
+}
+.stickerquality {
+  position: absolute; inset: 0;
+}
+.stickerhigh {
+  opacity: 0;
+}
+.stickerhigh.ready {opacity: 1}
+.stickerpreview.faded {
+  opacity: 0;
+}
 
 .stickerlayer.selected::after {
   position: absolute;
@@ -315,17 +340,30 @@
 .stickerhandletopright {cursor: grab; transform: translate(50%, -50%)}
 .stickerhandlebottomleft {transform: translate(-50%, 50%)}
 .stickerhandlebottomright {cursor: nwse-resize; transform: translate(50%, 50%)}
-.stickerhandle .icon {
+.stickerhandle .icon {width: 58%; height: 58%}
+.editor.cropmode .stickerlayer {pointer-events: none}
+.editor.cropmode .stickerhandle,
+.editor.cropmode .stickerlayer.selected::after {display: none}
+
+.stickerimage {
   display: block;
-  width: 26px; height: 26px;
-  flex: 0 0 auto;
-  fill: currentColor;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  pointer-events: none;
 }
-.iconclose {
-  width: 36px; height: 36px;
+
+.dropnotice {
+  position: absolute; display: grid;
+  z-index: 5; inset: 0;
+  place-items: center;
+  border: 2px dashed #1d9bf0;
+  background: rgba(0,0,0,0.55);
+  color: white; font-size: 18px;
 }
-.iconphoto {
-  width: 22px; height: 22px;
+
+.editor.dragging .canvasbox {
+  outline: 2px solid #1d9bf0;
+  outline-offset: 6px;
 }
 
 /*//////////////////////////////////////////////////////////////////////*/
@@ -363,33 +401,14 @@
   display: block;
   width: 26px; height: 26px;
   flex: 0 0 auto;
-  background-color: currentColor;
-  mask-position: center;
-  mask-repeat: no-repeat;
-  mask-size: contain;
+  fill: currentColor;
 }
 .iconclose {
   width: 36px; height: 36px;
-  mask-image: url("./assets/svgs/close.svg");
 }
 .iconphoto {
-  width: 22px;  height: 22px;
-  mask-image: url("./assets/svgs/photo.svg");
+  width: 22px; height: 22px;
 }
-.iconenhance {mask-image: url("./assets/svgs/enhance.svg")}
-.iconfilter {mask-image: url("./assets/svgs/filter.svg")}
-.iconcrop {mask-image: url("./assets/svgs/crop.svg")}
-.iconsticker {mask-image: url("./assets/svgs/sticker.svg")}
-.iconoriginal {mask-image: url("./assets/svgs/original.svg")}
-.iconwide {mask-image: url("./assets/svgs/wide.svg")}
-.iconsquare {mask-image: url("./assets/svgs/square.svg")}
-.iconrotate {mask-image: url("./assets/svgs/rotate.svg")}
-.iconhistory {mask-image: url("./assets/svgs/history.svg")}
-.iconundo {mask-image: url("./assets/svgs/undo.svg")}
-.iconredo {mask-image: url("./assets/svgs/redo.svg")}
-.icontrash {mask-image: url("./assets/svgs/trash.svg")}
-.iconcheck {mask-image: url("./assets/svgs/check.svg")}
-.iconresize {mask-image: url("./assets/svgs/resize.svg")}
 
 /*//////////////////////////////////////////////////////////////////////*/
 
@@ -409,7 +428,7 @@
   scrollbar-width: none;
 }
 
-.filterstrip, .categorystrip, .variantstrip {
+.filterstrip, .categorystrip, .variantpopover {
   user-select: none;
   touch-action: pan-y;
 }
@@ -417,7 +436,7 @@
 .filterstrip::-webkit-scrollbar,
 .categorystrip::-webkit-scrollbar,
 .stickergallery::-webkit-scrollbar,
-.variantstrip::-webkit-scrollbar {display: none}
+.variantpopover::-webkit-scrollbar {display: none}
 
 .filtertile {
   display: flex; flex: 0 0 68px;
@@ -568,21 +587,36 @@
 }
 .categorylabel {display: none}
 
-.variantstrip {
+.variantpopover {
+  position: absolute; z-index: 6;
   display: flex;
-  min-height: 66px;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  flex-wrap: nowrap;
   overflow-x: auto;
   align-items: center;
-  padding: 5px 0;
-  gap: 6px;
-  border-bottom: 1px solid rgba(255,255,255,0.16);
+  padding: 5px;
+  gap: 4px;
+  border-radius: 12px;
+  background: black;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.55);
   scrollbar-width: none;
 }
 
-.variantstrip .stickerchoice {
-  width: 54px;
-  height: 54px;
-  flex: 0 0 54px;
+.tonechoice {
+  display: grid;
+  width: 44px; height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  padding: 3px;
+  border-radius: 8px;
+}
+.tonechoice:hover {background: rgba(255,255,255,0.1)}
+.tonepreview {
+  display: block;
+  width: 100%; height: 100%;
+  object-fit: contain;
 }
 
 /*//////////////////////////////////////////////////////////////////////*/
@@ -622,7 +656,7 @@
 
 .filterstrip.dragging,
 .categorystrip.dragging,
-.variantstrip.dragging {
+.variantpopover.dragging {
   cursor: grabbing;
 }
 
@@ -670,7 +704,7 @@
 
   .workspace {
     inset: calc(54px + env(safe-area-inset-top)) 0 calc(120px + env(safe-area-inset-bottom));
-    padding: 8px 10px;
+    padding: 8px 16px;
   }
 
   .footer {

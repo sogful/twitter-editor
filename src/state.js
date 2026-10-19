@@ -24,6 +24,8 @@ window.photoeditor = window.photoeditor || {};
     pendingsticker: "",
     pendingstickerhistory: null,
     selectedgroup: null,
+    variantitem: null,
+    variantanchor: null,
     category: "featured",
     recent: [],
     historyback: [],
@@ -37,9 +39,12 @@ window.photoeditor = window.photoeditor || {};
 
   editor.resettools = () => {
     const state = editor.state;
+    editor.stickerpreviews?.clear();
     state.stickers = [];
     state.selectedsticker = "";
     state.selectedgroup = null;
+    state.variantitem = null;
+    state.variantanchor = null;
     state.selectedfilter = "No Filter";
     state.intensity = 100;
     state.enhanced = false;

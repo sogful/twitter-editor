@@ -32,7 +32,10 @@
         <section class="workspace" aria-label="Photo preview">
           <div class="canvasbox">
             <div class="cropstage">
-              <canvas class="photocanvas" aria-label="Edited photo"></canvas>
+              <div class="photoclip">
+                <canvas class="photocanvas" aria-label="Edited photo"></canvas>
+                <div class="stickerartlayers"></div>
+              </div>
               <div class="cropguide off">
                 <button class="crophandle croptopleft" type="button" data-handle="topleft" aria-label="Resize crop from top left"></button>
                 <button class="crophandle croptopright" type="button" data-handle="topright" aria-label="Resize crop from top right"></button>
@@ -72,7 +75,7 @@
         </section>
         <section class="stickerpanel off" aria-label="Sticker picker">
           <div class="categorystrip" aria-label="Sticker categories"></div>
-          <div class="variantstrip off" aria-label="Sticker variations"></div>
+          <div class="variantpopover off" aria-label="Choose a skin tone"></div>
           <div class="stickergallery"></div>
           <div class="stickerstate off"></div>
         </section>
@@ -111,6 +114,7 @@
     <script defer src="./src/images.js"></script>
     <script defer src="./src/render.js"></script>
     <script defer src="./src/icons.js"></script>
+    <script defer src="./src/stickerlayers.js"></script>
     <script defer src="./src/stickergallery.js"></script>
     <script defer src="./src/history.js"></script>
     <script defer src="./src/actions.js"></script>

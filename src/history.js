@@ -34,6 +34,8 @@
 
   editor.restorehistory = (snapshot) => {
     const state = editor.state;
+    editor.dismissvariantmenu();
+    editor.stickerpreviews.clear();
     state.photo = snapshot.photo ? {...snapshot.photo} : null;
     state.source = snapshot.source;
     state.selectedfilter = snapshot.selectedfilter;
