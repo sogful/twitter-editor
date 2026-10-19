@@ -71,9 +71,14 @@
       return;
     }
     const next = state.tool === name ? "" : name;
+    if (state.tool === "crop" && next !== "crop" && state.cropstickers) {
+      state.stickers = state.cropstickers.map((item) => ({...item}));
+      state.cropstickers = null;
+    }
     if (next !== "sticker") editor.discardpendingsticker();
     state.tool = next;
     state.selectedgroup = null;
+    state.cropstickers = next === "crop" ? state.stickers.map((item) => ({...item})) : null;
     state.croprect = next === "crop" ? editor.croprectfor("Original", state.source, 0) : null;
     state.cropview = {scale: 1, x: 0, y: 0};
     state.crop = "Original";
@@ -174,6 +179,10 @@
 
   editor.canceltool = () => {
     const state = editor.state;
+    if (state.tool === "crop" && state.cropstickers) {
+      state.stickers = state.cropstickers.map((item) => ({...item}));
+      state.cropstickers = null;
+    }
     editor.discardpendingsticker();
     state.tool = "";
     state.selectedgroup = null;
@@ -215,6 +224,7 @@
     state.tool = "";
     state.crop = "Original";
     state.rotation = 0;
+    state.cropstickers = null;
     state.croplocked = true;
     state.croprect = null;
     state.cropdrag = null;
@@ -238,12 +248,12 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${state.photo.name || "photo"}-edited.png`;
+      link.download = `${state.photo.name || "mysteriousphoto"}-edit.png`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       editor.setmessage("Image saved");
     } catch (error) {
-      editor.setmessage(error.message || "The image could not be saved :(");
+      editor.setmessage(error.message || "The image could not be saved :( Check console for errors!");
     } finally {
       state.busy = false;
       editor.render();

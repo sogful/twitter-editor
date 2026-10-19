@@ -43,6 +43,15 @@
       });
     }
     document.querySelector(".rotatebutton").addEventListener("click", () => {
+      const oriented = editor.orientedimage(state.source, state.rotation);
+      const scale = editor.imagewidth(oriented) / editor.imageheight(oriented);
+      state.stickers = state.stickers.map((item) => ({
+        ...item,
+        x: 100 - item.y,
+        y: item.x,
+        size: item.size * scale,
+        rotation: item.rotation + 90
+      }));
       state.rotation = (state.rotation + 90) % 360;
       if (state.croprect) state.croprect = editor.rotatecroprect(state.croprect);
       const view = state.cropview;

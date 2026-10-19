@@ -1,13 +1,14 @@
 ((editor) => {
   editor.historysnapshot = () => {
     const state = editor.state;
+    const stickers = state.tool === "crop" && state.cropstickers ? state.cropstickers : state.stickers;
     return {
       photo: state.photo ? {...state.photo} : null,
       source: state.source,
       selectedfilter: state.selectedfilter,
       intensity: state.intensity,
       enhanced: state.enhanced,
-      stickers: state.stickers.map((item) => ({...item})),
+      stickers: stickers.map((item) => ({...item})),
       selectedsticker: state.selectedsticker
     };
   };
@@ -44,6 +45,7 @@
     state.pendingstickerhistory = null;
     state.tool = "";
     state.croprect = null;
+    state.cropstickers = null;
     state.croplocked = true;
     state.crop = "Original";
     state.rotation = 0;

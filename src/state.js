@@ -13,6 +13,7 @@ window.photoeditor = window.photoeditor || {};
     crop: "Original",
     rotation: 0,
     croprect: null,
+    cropstickers: null,
     croplocked: true,
     cropdrag: null,
     cropview: {scale: 1, x: 0, y: 0},
@@ -45,6 +46,7 @@ window.photoeditor = window.photoeditor || {};
     state.crop = "Original";
     state.rotation = 0;
     state.croprect = null;
+    state.cropstickers = null;
     state.croplocked = true;
     state.cropdrag = null;
     state.cropview = {scale: 1, x: 0, y: 0};
