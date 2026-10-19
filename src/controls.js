@@ -6,12 +6,7 @@
     document.querySelector(".usesample").addEventListener("click", editor.usesample);
     document.querySelector(".toolclose").addEventListener("click", () => {
       if (state.tool) editor.canceltool();
-      else {
-        editor.discardpendingsticker();
-        state.selectedsticker = "";
-        state.selectedgroup = null;
-        editor.render();
-      }
+      else editor.returntostart();
     });
     document.querySelector(".undo").addEventListener("click", editor.undo);
     document.querySelector(".redo").addEventListener("click", editor.redo);

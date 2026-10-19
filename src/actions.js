@@ -187,6 +187,19 @@
     editor.render();
   };
 
+  editor.returntostart = () => {
+    const state = editor.state;
+    if (state.photo?.local.startsWith("blob:")) URL.revokeObjectURL(state.photo.local);
+    clearTimeout(editor.messagetimer);
+    state.photo = null;
+    state.source = null;
+    state.busy = false;
+    state.message = "";
+    state.dragover = false;
+    editor.resettools();
+    editor.render();
+  };
+
   editor.applycrop = () => {
     const state = editor.state;
     if (!state.source || !state.croprect) return;
