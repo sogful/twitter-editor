@@ -30,6 +30,21 @@
     guide.style.height = `${state.croprect.height * 100}%`;
   };
 
+  editor.layoutpreview = () => {
+    const state = editor.state;
+    const box = document.querySelector(".canvasbox");
+    if (!state.source || !box) return;
+    const source = editor.orientedimage(state.source, state.tool === "crop" ? state.rotation : 0);
+    const ratio = editor.imagewidth(source) / editor.imageheight(source);
+    const workspace = document.querySelector(".workspace").getBoundingClientRect();
+    const boxwidth = Math.min(workspace.width - 20, 900, (workspace.height - 16) * ratio);
+    const boxheight = Math.min(workspace.height - 16, boxwidth / ratio);
+    box.style.width = `${boxwidth}px`;
+    box.style.height = `${boxheight}px`;
+    box.style.aspectRatio = String(ratio);
+    if (state.tool === "crop" && state.croprect) editor.rendercropguide();
+  };
+
   editor.renderpreview = () => {
     const state = editor.state;
     const canvas = document.querySelector(".photocanvas");
@@ -59,14 +74,7 @@
     ).catch((error) => {
       if (version === editor.filterpreviewversion) editor.setmessage(error.message);
     });
-    const ratio = width / height;
-    const workspace = document.querySelector(".workspace").getBoundingClientRect();
-    const boxwidth = Math.min(workspace.width - 20, 900, (workspace.height - 16) * ratio);
-    const boxheight = Math.min(workspace.height - 16, boxwidth / ratio);
-    box.style.width = String(boxwidth) + "px";
-    box.style.height = String(boxheight) + "px";
-    box.style.aspectRatio = String(ratio);
-    if (state.tool === "crop" && state.croprect) editor.rendercropguide();
+    editor.layoutpreview();
   };
 
   /*//////////////////////////////////////////////////////////////////////*/
@@ -314,4 +322,3 @@
     editor.renderlayers();
   };
 })(window.photoeditor);
-

@@ -261,6 +261,7 @@
       state.croppointers.clear();
       state.croppinch = null;
     });
+    window.addEventListener("resize", () => editor.layoutpreview());
 
     editor.root.addEventListener("dragover", (event) => {
       event.preventDefault();
@@ -307,4 +308,3 @@
     });
   };
 })(window.photoeditor);
-
