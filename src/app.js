@@ -6,7 +6,7 @@
     editor.render();
     fetch("assets/static/catalog.json")
       .then((response) => {
-        if (!response.ok) throw new Error("Sticker catalog request failed.");
+        if (!response.ok) throw new Error("Sticker catalog request failed?!");
         return response.json();
       })
       .then((catalog) => {
