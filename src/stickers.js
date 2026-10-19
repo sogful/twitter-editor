@@ -1,5 +1,5 @@
 ((editor) => {
-  const emptyindex = {all: [], lookup: new Map(), categories: new Map(), fire: null};
+  const emptyindex = {all: [], lookup: new Map(), categories: new Map()};
 
   editor.getstoredrecent = () => {
     try {
@@ -38,7 +38,7 @@
         for (const variant of item.variant_stickers || []) add(variant);
       }
     }
-    index = {all, lookup, categories, fire: all.find((item) => item.display_name === "Fire")};
+    index = {all, lookup, categories};
     editor.stickerindexes.set(catalog, index);
     return index;
   };
