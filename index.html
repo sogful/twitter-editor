@@ -22,10 +22,10 @@
           </button>
           <h1 class="title">Edit photo</h1>
           <button class="historybutton button undo" type="button" aria-label="Undo" title="Undo" disabled>
-            <span class="icon iconhistory" aria-hidden="true"></span>
+            <span class="icon iconundo" aria-hidden="true"></span>
           </button>
           <button class="historybutton button redo" type="button" aria-label="Redo" title="Redo" disabled>
-            <span class="icon iconhistory iconredo" aria-hidden="true"></span>
+            <span class="icon iconredo" aria-hidden="true"></span>
           </button>
           <button class="donebutton button" type="button">Done</button>
         </header>
@@ -43,12 +43,10 @@
           </div>
         </section>
         <section class="filterpanel off" aria-label="Filters">
-          <div class="filterstrip"></div>
           <label class="intensityrow">
-            <span>Intensity</span>
             <input class="intensity input" type="range" min="0" max="100" value="100" aria-label="Filter intensity" />
-            <span class="intensityvalue">100</span>
           </label>
+          <div class="filterstrip"></div>
         </section>
         <section class="croppanel off" aria-label="Crop image">
           <div class="cropchoices">
