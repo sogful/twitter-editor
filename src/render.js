@@ -173,7 +173,7 @@
       button.append(preview, name);
       button.addEventListener("click", () => editor.setfilter(preset.name));
       strip.append(button);
-      editor.applyfilter(image, preset.name, preset.initial, false, image, () => button.isConnected).catch((error) => {
+      editor.applyfilter(image, preset.name, 100, false, image, () => button.isConnected).catch((error) => {
         if (button.isConnected) editor.setmessage(error.message);
       });
     }
