@@ -315,30 +315,17 @@
 .stickerhandletopright {cursor: grab; transform: translate(50%, -50%)}
 .stickerhandlebottomleft {transform: translate(-50%, 50%)}
 .stickerhandlebottomright {cursor: nwse-resize; transform: translate(50%, 50%)}
-.stickerhandle .icon {width: 58%; height: 58%}
-.editor.cropmode .stickerlayer {pointer-events: none}
-.editor.cropmode .stickerhandle,
-.editor.cropmode .stickerlayer.selected::after {display: none}
-
-.stickerimage {
+.stickerhandle .icon {
   display: block;
-  width: 100%; height: 100%;
-  object-fit: contain;
-  pointer-events: none;
+  width: 26px; height: 26px;
+  flex: 0 0 auto;
+  fill: currentColor;
 }
-
-.dropnotice {
-  position: absolute; display: grid;
-  z-index: 5; inset: 0;
-  place-items: center;
-  border: 2px dashed #1d9bf0;
-  background: rgba(0,0,0,0.55);
-  color: white; font-size: 18px;
+.iconclose {
+  width: 36px; height: 36px;
 }
-
-.editor.dragging .canvasbox {
-  outline: 2px solid #1d9bf0;
-  outline-offset: 6px;
+.iconphoto {
+  width: 22px; height: 22px;
 }
 
 /*//////////////////////////////////////////////////////////////////////*/
