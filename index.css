@@ -1,3 +1,27 @@
+@font-face {
+  font-family: "Chirp";
+  src: url("./assets/fonts/chirp.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Chirp";
+  src: url("./assets/fonts/chirpbold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Chirp";
+  src: url("./assets/fonts/chirpheavy.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+}
+
 /*//////////////////////////////////////////////////////////////////////*/
 
 .page {
@@ -7,7 +31,7 @@
   overflow: hidden;
   background: #000000;
   color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  font-family: "Chirp", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -199,7 +223,7 @@
   height: 40px;
   padding: 0 12px;
   color: #ffffff;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 700;
 }
 
@@ -355,9 +379,14 @@
 }
 
 .iconclose {
+  width: 36px;
+  height: 36px;
+  mask-image: url("./assets/icons/close.svg");
+}
+
+.clearsearch .iconclose {
   width: 18px;
   height: 18px;
-  mask-image: url("./assets/icons/close.svg");
 }
 
 .iconphoto {
