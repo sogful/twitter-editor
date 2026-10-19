@@ -17,7 +17,7 @@
   editor.openfile = async (file) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      editor.setmessage("Choose an image file.");
+      editor.setmessage("Pretty sure that's not an image...");
       return;
     }
     const local = URL.createObjectURL(file);
@@ -45,7 +45,7 @@
       const source = await editor.loadimage(local);
       editor.setphoto(local, "sample", source);
     } catch (error) {
-      editor.setmessage(error.message || "The sample photo could not be opened...");
+      editor.setmessage(error.message || "The cat failed loading... How are you seeing this error? How is this possible? Are we serious?");
     }
   };
 

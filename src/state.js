@@ -1,5 +1,6 @@
 window.photoeditor = window.photoeditor || {};
 
+// holy bloat
 ((editor) => {
   editor.state = {
     photo: null,

@@ -4,7 +4,7 @@
       const image = new Image();
       image.crossOrigin = "anonymous";
       image.onload = () => resolve(image);
-      image.onerror = () => reject(new Error("The image could not be opened."));
+      image.onerror = () => reject(new Error("The image could not be opened..."));
       image.src = url;
     });
 

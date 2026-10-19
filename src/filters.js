@@ -267,19 +267,24 @@
     const preset = editor.filters.find((item) => item.name === name) || editor.filters[0];
     const amount = Math.max(0, Math.min(100, intensity)) / 100;
     const lutcanvas = preset.lookup ? await editor.loadfilterlut(preset.lookup) : null;
+    
     if (!lutcanvas && !enhanced) return false;
     const width = source.width;
     const height = source.height;
+
     if (!width || !height) return false;
     const enhancement = enhanced ? editor.measureenhancement(source) : null;
     const renderer = editor.filterrenderer || (editor.filterrenderer = editor.createfilterrenderer());
     const gl = renderer?.gl;
+    
     if (!renderer || width > gl.getParameter(gl.MAX_TEXTURE_SIZE) || height > gl.getParameter(gl.MAX_TEXTURE_SIZE)) {
       return editor.applyfiltercpu(target, source, lutcanvas, amount, enhanced, shouldapply, enhancement);
     }
+
     const canvas = renderer.canvas;
     canvas.width = width;
     canvas.height = height;
+
     gl.viewport(0, 0, width, height);
     gl.useProgram(renderer.program);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -298,6 +303,7 @@
     gl.uniform1f(gl.getUniformLocation(renderer.program, "contrast"), enhancement?.contrast || 1);
     gl.uniform1f(gl.getUniformLocation(renderer.program, "saturation"), enhancement?.saturation || 1);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    
     if (shouldapply()) target.getContext("2d").drawImage(canvas, 0, 0, width, height);
     return true;
   };
