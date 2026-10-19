@@ -45,7 +45,7 @@
       const source = await editor.loadimage(local);
       editor.setphoto(local, "sample", source);
     } catch (error) {
-      editor.setmessage(error.message || "The sample photo could not be opened.");
+      editor.setmessage(error.message || "The sample photo could not be opened...");
     }
   };
 
@@ -171,8 +171,13 @@
     state.message = "";
     editor.render();
     try {
-      const filter = editor.filtercss(state.selectedfilter, state.intensity, state.enhanced);
-      const blob = await editor.exportimage({source: state.source, filter, stickers: state.stickers});
+      const blob = await editor.exportimage({
+        source: state.source,
+        filter: state.selectedfilter,
+        intensity: state.intensity,
+        enhanced: state.enhanced,
+        stickers: state.stickers
+      });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;

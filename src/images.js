@@ -67,16 +67,15 @@
     return canvas;
   };
 
-  editor.exportimage = async ({source, filter, stickers}) => {
+  editor.exportimage = async ({source, filter, intensity, enhanced, stickers}) => {
     const width = editor.imagewidth(source);
     const height = editor.imageheight(source);
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
     canvas.width = width;
     canvas.height = height;
-    context.filter = filter;
     context.drawImage(source, 0, 0, width, height);
-    context.filter = "none";
+    await editor.applyfilter(canvas, filter, intensity, enhanced);
     for (const item of stickers) {
       const url = editor.imageurl(item.sticker, "raw");
       if (!url) continue;

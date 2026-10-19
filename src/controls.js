@@ -52,11 +52,7 @@
     intensity.addEventListener("input", (event) => {
       state.intensity = Number(event.target.value);
       document.querySelector(".intensityvalue").textContent = String(state.intensity);
-      document.querySelector(".photocanvas").style.filter = editor.filtercss(
-        state.selectedfilter,
-        state.intensity,
-        state.enhanced
-      );
+      editor.renderpreview();
     });
     intensity.addEventListener("change", () => {
       state.rangeediting = false;

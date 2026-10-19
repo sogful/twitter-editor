@@ -24,15 +24,31 @@
     const state = editor.state;
     const canvas = document.querySelector(".photocanvas");
     const box = document.querySelector(".canvasbox");
+    editor.filterpreviewversion++;
     if (!state.source || !canvas || !box) return;
     const source = editor.orientedimage(state.source, state.tool === "crop" ? state.rotation : 0);
     const width = editor.imagewidth(source);
     const height = editor.imageheight(source);
     canvas.width = width;
     canvas.height = height;
-    canvas.style.filter = editor.filtercss(state.selectedfilter, state.intensity, state.enhanced);
+    canvas.style.filter = "none";
     const context = canvas.getContext("2d");
     context.drawImage(source, 0, 0, width, height);
+    const filterinput = document.createElement("canvas");
+    filterinput.width = width;
+    filterinput.height = height;
+    filterinput.getContext("2d").drawImage(canvas, 0, 0);
+    const version = editor.filterpreviewversion;
+    editor.applyfilter(
+      canvas,
+      state.selectedfilter,
+      state.intensity,
+      state.enhanced,
+      filterinput,
+      () => version === editor.filterpreviewversion
+    ).catch((error) => {
+      if (version === editor.filterpreviewversion) editor.setmessage(error.message);
+    });
     const ratio = width / height;
     const workspace = document.querySelector(".workspace").getBoundingClientRect();
     const boxwidth = Math.min(workspace.width - 20, 900, (workspace.height - 16) * ratio);
@@ -60,17 +76,39 @@
     for (const preset of editor.filters) {
       const button = editor.createelement("button", "filtertile button");
       const preview = editor.createelement("span", "filterpreview");
-      const image = editor.makeimage(state.photo.local, "filterimage", "");
+      const image = editor.createelement("canvas", "filterimage");
       const name = editor.createelement("span", "filtername", preset.name);
+      const width = editor.imagewidth(state.source);
+      const height = editor.imageheight(state.source);
+      const size = 96;
+      const scale = Math.max(size / width, size / height);
+      const sourcewidth = size / scale;
+      const sourceheight = size / scale;
       button.type = "button";
       button.setAttribute("aria-label", preset.name);
       button.setAttribute("aria-pressed", String(preset.name === state.selectedfilter));
       button.classList.toggle("selected", preset.name === state.selectedfilter);
+      image.width = size;
+      image.height = size;
+      image.setAttribute("aria-hidden", "true");
+      image.getContext("2d").drawImage(
+        state.source,
+        (width - sourcewidth) / 2,
+        (height - sourceheight) / 2,
+        sourcewidth,
+        sourceheight,
+        0,
+        0,
+        size,
+        size
+      );
       preview.append(image);
-      image.style.filter = editor.filtercss(preset.name, preset.initial, state.enhanced);
       button.append(preview, name);
       button.addEventListener("click", () => editor.setfilter(preset.name));
       strip.append(button);
+      editor.applyfilter(image, preset.name, preset.initial, false, image, () => button.isConnected).catch((error) => {
+        if (button.isConnected) editor.setmessage(error.message);
+      });
     }
   };
 
