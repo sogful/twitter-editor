@@ -284,37 +284,34 @@
 
 .stickerlayer.selected::after {
   position: absolute;
-  inset: -2px; border: 2px solid white;
+  inset: 0; box-sizing: border-box;
+  border: 2px solid white;
   content: ""; pointer-events: none;
 }
 
 .stickerhandle {
   position: absolute; z-index: 1;
   display: none;
-  width: 11px; height: 11px;
+  width: 30px; height: 30px;
   place-items: center; padding: 0;
   transform: translate(-50%, -50%);
   border: 1px solid black;
-  border-radius: 2px;
+  border-radius: 4px;
   background: white;
+  color: #000;
   cursor: nwse-resize;
   touch-action: none;
 }
 
 .stickerlayer.selected .stickerhandle {display: grid}
-.stickerhandletop, .stickerhandlebottom {left: 50%}
-.stickerhandletop {top: 0; cursor: grab}
-.stickerhandlebottom {bottom: 0; cursor: ns-resize}
-.stickerhandleleft, .stickerhandleright {top: 50%;cursor: ew-resize}
-.stickerhandleleft {left: 0}
-.stickerhandleright {right: 0}
-.stickerhandletopleft, .stickerhandletopright,
-.stickerhandlebottomleft, .stickerhandlebottomright {cursor: nwse-resize}
-
 .stickerhandletopleft {top: 0; left: 0}
 .stickerhandletopright {top: 0; right: 0}
 .stickerhandlebottomleft {bottom: 0; left: 0}
 .stickerhandlebottomright {right: 0; bottom: 0}
+.stickerhandletopleft, .stickerhandlebottomleft {cursor: pointer}
+.stickerhandletopright {cursor: grab}
+.stickerhandlebottomright {cursor: nwse-resize}
+.stickerhandle .icon {width: 17px; height: 17px}
 
 .stickerimage {
   display: block;
@@ -398,6 +395,8 @@
 .iconundo {mask-image: url("./assets/icons/undo.svg")}
 .iconredo {mask-image: url("./assets/icons/redo.svg")}
 .icontrash {mask-image: url("./assets/icons/trash.svg")}
+.iconcheck {mask-image: url("./assets/icons/check.svg")}
+.iconresize {mask-image: url("./assets/icons/resize.svg")}
 
 /*//////////////////////////////////////////////////////////////////////*/
 
@@ -719,4 +718,3 @@
   scrollbar-width: none; transition: none !important;
 }
 *::-webkit-scrollbar {display: none}
-

@@ -66,6 +66,23 @@
         event.currentTarget.setPointerCapture(event.pointerId);
       } catch {}
     });
+    canvasbox.addEventListener("pointerdown", (event) => {
+      if (state.tool !== "crop" || event.pointerType !== "touch") return;
+      state.croppointers.set(event.pointerId, {x: event.clientX, y: event.clientY});
+      if (state.croppointers.size < 2 || !state.croprect) return;
+      const points = [...state.croppointers.values()];
+      const box = canvasbox.getBoundingClientRect();
+      state.cropdrag = null;
+      state.croppinch = {
+        pointers: [...state.croppointers.keys()],
+        distance: Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y),
+        x: ((points[0].x + points[1].x) / 2 - box.left) / box.width,
+        y: ((points[0].y + points[1].y) / 2 - box.top) / box.height,
+        midpointx: (points[0].x + points[1].x) / 2,
+        midpointy: (points[0].y + points[1].y) / 2,
+        rect: {...state.croprect}
+      };
+    });
     document.querySelector(".cropguide").addEventListener("pointermove", (event) => {
       const drag = state.cropdrag;
       if (!drag || drag.pointer !== event.pointerId) return;
@@ -82,28 +99,38 @@
           y: Math.max(0, Math.min(1 - start.height, start.y + dy / box.height))
         };
       } else {
-        const directionx = drag.handle.includes("left") ? -1 : 1;
-        const directiony = drag.handle.includes("top") ? -1 : 1;
-        const ratio = editor.cropratio(state.crop, editor.imagewidth(state.source), editor.imageheight(state.source), state.rotation);
-        const changes = [directionx * dx / box.width, directiony * dy * ratio / box.width];
-        const requested = start.width + changes.reduce((sum, value) => sum + value, 0) / changes.length;
-        const anchorx = directionx < 0 ? start.x + start.width : start.x;
-        const anchory = directiony < 0 ? start.y + start.height : start.y;
-        const maxwidth = Math.min(
-          directionx < 0 ? anchorx : 1 - anchorx,
-          (directiony < 0 ? anchory : 1 - anchory) * ratio * box.height / box.width
-        );
-        const width = Math.max(Math.min(0.08, maxwidth), Math.min(maxwidth, requested));
-        const height = width * box.width / (ratio * box.height);
+        const left = drag.handle.includes("left")
+          ? Math.max(0, Math.min(start.x + start.width - 0.04, start.x + dx / box.width))
+          : start.x;
+        const right = drag.handle.includes("right")
+          ? Math.min(1, Math.max(start.x + 0.04, start.x + start.width + dx / box.width))
+          : start.x + start.width;
+        const top = drag.handle.includes("top")
+          ? Math.max(0, Math.min(start.y + start.height - 0.04, start.y + dy / box.height))
+          : start.y;
+        const bottom = drag.handle.includes("bottom")
+          ? Math.min(1, Math.max(start.y + 0.04, start.y + start.height + dy / box.height))
+          : start.y + start.height;
         state.croprect = {
-          x: directionx < 0 ? anchorx - width : anchorx,
-          y: directiony < 0 ? anchory - height : anchory,
-          width,
-          height
+          x: left,
+          y: top,
+          width: right - left,
+          height: bottom - top
         };
+        state.croplocked = false;
+        state.crop = "Custom";
       }
-      editor.renderpreview();
+      editor.rendercropguide();
     });
+    canvasbox.addEventListener("wheel", (event) => {
+      if (state.tool !== "crop" || !state.croprect) return;
+      event.preventDefault();
+      const box = canvasbox.getBoundingClientRect();
+      const anchorx = Math.max(0, Math.min(1, (event.clientX - box.left) / box.width));
+      const anchory = Math.max(0, Math.min(1, (event.clientY - box.top) / box.height));
+      state.croprect = editor.zoomcroprect(state.croprect, anchorx, anchory, event.deltaY < 0 ? 0.9 : 1.1);
+      editor.rendercropguide();
+    }, {passive: false});
 
     layers.addEventListener("pointerdown", (event) => {
       const layer = event.target.closest(".stickerlayer");
@@ -111,14 +138,27 @@
       event.preventDefault();
       const item = state.stickers.find((sticker) => sticker.key === layer.dataset.key);
       if (!item) return;
-      editor.pushhistory();
       const handle = event.target.closest(".stickerhandle")?.dataset.handle || "move";
+      state.selectedsticker = item.key;
+      if (handle === "topleft") {
+        editor.removeselected();
+        return;
+      }
+      if (handle === "bottomleft") {
+        if (state.pendingsticker === item.key) editor.confirmsticker();
+        else {
+          state.selectedsticker = "";
+        }
+        editor.render();
+        return;
+      }
+      if (state.pendingsticker !== item.key) editor.pushhistory();
       const layerbox = layer.getBoundingClientRect();
       const angle = Math.atan2(event.clientY - (layerbox.top + layerbox.height / 2), event.clientX - (layerbox.left + layerbox.width / 2));
       state.pointer = {
         key: item.key,
         pointer: event.pointerId,
-        mode: handle === "move" ? "move" : handle === "top" ? "rotate" : "resize",
+        mode: handle === "move" ? "move" : handle === "topright" ? "rotate" : "resize",
         handle,
         x: event.clientX,
         y: event.clientY,
@@ -138,6 +178,30 @@
     });
 
     window.addEventListener("pointermove", (event) => {
+      if (state.croppointers.has(event.pointerId)) {
+        state.croppointers.set(event.pointerId, {x: event.clientX, y: event.clientY});
+        if (state.croppinch && state.croppinch.pointers.includes(event.pointerId)) {
+          const points = state.croppinch.pointers.map((id) => state.croppointers.get(id));
+          if (points.every(Boolean)) {
+            const box = canvasbox.getBoundingClientRect();
+            const midpointx = (points[0].x + points[1].x) / 2;
+            const midpointy = (points[0].y + points[1].y) / 2;
+            const distance = Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
+            const factor = state.croppinch.distance / Math.max(1, distance);
+            const anchorx = state.croppinch.x;
+            const anchory = state.croppinch.y;
+            const rect = editor.zoomcroprect(state.croppinch.rect, anchorx, anchory, factor);
+            rect.x += (midpointx - state.croppinch.midpointx) / box.width;
+            rect.y += (midpointy - state.croppinch.midpointy) / box.height;
+            rect.x = Math.max(0, Math.min(1 - rect.width, rect.x));
+            rect.y = Math.max(0, Math.min(1 - rect.height, rect.y));
+            state.croprect = rect;
+            editor.rendercropguide();
+          }
+          event.preventDefault();
+          return;
+        }
+      }
       const drag = state.pointer;
       if (!drag || drag.pointer !== event.pointerId) return;
       const box = canvasbox.getBoundingClientRect();
@@ -175,6 +239,11 @@
     });
 
     const stopdrag = (event) => {
+      state.croppointers.delete(event.pointerId);
+      if (state.croppinch?.pointers.includes(event.pointerId)) {
+        state.croppinch = null;
+        state.cropdrag = null;
+      }
       if (state.pointer?.pointer === event.pointerId) {
         state.pointer = null;
         editor.render();
@@ -189,6 +258,8 @@
     window.addEventListener("blur", () => {
       state.pointer = null;
       state.cropdrag = null;
+      state.croppointers.clear();
+      state.croppinch = null;
     });
 
     editor.root.addEventListener("dragover", (event) => {
@@ -236,3 +307,4 @@
     });
   };
 })(window.photoeditor);
+

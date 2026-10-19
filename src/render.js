@@ -20,6 +20,16 @@
 
   /*//////////////////////////////////////////////////////////////////////*/
 
+  editor.rendercropguide = () => {
+    const state = editor.state;
+    const guide = document.querySelector(".cropguide");
+    if (!guide || !state.croprect) return;
+    guide.style.left = `${state.croprect.x * 100}%`;
+    guide.style.top = `${state.croprect.y * 100}%`;
+    guide.style.width = `${state.croprect.width * 100}%`;
+    guide.style.height = `${state.croprect.height * 100}%`;
+  };
+
   editor.renderpreview = () => {
     const state = editor.state;
     const canvas = document.querySelector(".photocanvas");
@@ -53,16 +63,10 @@
     const workspace = document.querySelector(".workspace").getBoundingClientRect();
     const boxwidth = Math.min(workspace.width - 20, 900, (workspace.height - 16) * ratio);
     const boxheight = Math.min(workspace.height - 16, boxwidth / ratio);
-    box.style.width = `${boxwidth}px`;
-    box.style.height = `${boxheight}px`;
+    box.style.width = String(boxwidth) + "px";
+    box.style.height = String(boxheight) + "px";
     box.style.aspectRatio = String(ratio);
-    if (state.tool === "crop" && state.croprect) {
-      const guide = document.querySelector(".cropguide");
-      guide.style.left = `${state.croprect.x * 100}%`;
-      guide.style.top = `${state.croprect.y * 100}%`;
-      guide.style.width = `${state.croprect.width * 100}%`;
-      guide.style.height = `${state.croprect.height * 100}%`;
-    }
+    if (state.tool === "crop" && state.croprect) editor.rendercropguide();
   };
 
   /*//////////////////////////////////////////////////////////////////////*/
@@ -235,11 +239,18 @@
         setratio();
         layer.append(image);
       }
-      for (const handle of ["topleft", "top", "topright", "left", "right", "bottomleft", "bottom", "bottomright"]) {
-        const control = editor.createelement("button", `stickerhandle stickerhandle${handle}`);
+      const handles = [
+        {name: "topleft", icon: "icontrash", label: "Delete sticker"},
+        {name: "topright", icon: "iconrotate", label: "Rotate sticker"},
+        {name: "bottomleft", icon: "iconcheck", label: "Confirm sticker"},
+        {name: "bottomright", icon: "iconresize", label: "Resize sticker"}
+      ];
+      for (const handle of handles) {
+        const control = editor.createelement("button", `stickerhandle stickerhandle${handle.name}`);
         control.type = "button";
-        control.dataset.handle = handle;
-        control.setAttribute("aria-label", `Resize ${item.sticker.display_name} from ${handle}`);
+        control.dataset.handle = handle.name;
+        control.setAttribute("aria-label", `${handle.label}: ${item.sticker.display_name}`);
+        control.append(editor.makeicon(handle.icon));
         layer.append(control);
       }
       layers.append(layer);
@@ -292,8 +303,9 @@
       button.classList.toggle("selected", selected);
       button.setAttribute("aria-pressed", String(selected));
     }
-    document.querySelector(".intensity").value = state.intensity;
-    document.querySelector(".intensityvalue").textContent = String(state.intensity);
+    const intensity = document.querySelector(".intensity");
+    intensity.value = state.intensity;
+    intensity.style.setProperty("--progress", `${state.intensity}%`);
     document.querySelector(".toast").textContent = state.message;
     document.querySelector(".toast").classList.toggle("off", !state.message);
     editor.renderpreview();
@@ -302,3 +314,4 @@
     editor.renderlayers();
   };
 })(window.photoeditor);
+

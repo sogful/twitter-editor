@@ -51,6 +51,44 @@
     return {x: (1 - rectwidth) / 2, y: (1 - rectheight) / 2, width: rectwidth, height: rectheight};
   };
 
+  editor.rectforratio = (rect, image, rotation, ratio) => {
+    const oriented = editor.orientedimage(image, rotation);
+    const imagewidth = editor.imagewidth(oriented);
+    const imageheight = editor.imageheight(oriented);
+    const target = ratio * imageheight / imagewidth;
+    const area = rect.width * rect.height;
+    let width = Math.sqrt(area * target);
+    let height = width / target;
+    const scale = Math.min(1, (Math.min(rect.x + rect.width / 2, 1 - rect.x - rect.width / 2) * 2) / width, (Math.min(rect.y + rect.height / 2, 1 - rect.y - rect.height / 2) * 2) / height);
+    width *= scale;
+    height *= scale;
+    const centerx = rect.x + rect.width / 2;
+    const centery = rect.y + rect.height / 2;
+    return {
+      x: Math.max(0, Math.min(1 - width, centerx - width / 2)),
+      y: Math.max(0, Math.min(1 - height, centery - height / 2)),
+      width,
+      height
+    };
+  };
+
+  editor.zoomcroprect = (rect, anchorx, anchory, factor) => {
+    const maximum = Math.min(
+      rect.x < anchorx ? anchorx / (anchorx - rect.x) : Infinity,
+      rect.x + rect.width > anchorx ? (1 - anchorx) / (rect.x + rect.width - anchorx) : Infinity,
+      rect.y < anchory ? anchory / (anchory - rect.y) : Infinity,
+      rect.y + rect.height > anchory ? (1 - anchory) / (rect.y + rect.height - anchory) : Infinity
+    );
+    const minimum = Math.min(maximum, Math.max(0.035 / rect.width, 0.035 / rect.height));
+    const scale = Math.max(minimum, Math.min(maximum, factor));
+    return {
+      x: anchorx + (rect.x - anchorx) * scale,
+      y: anchory + (rect.y - anchory) * scale,
+      width: rect.width * scale,
+      height: rect.height * scale
+    };
+  };
+
   editor.cropcanvas = (image, rotation, rect) => {
     const oriented = editor.orientedimage(image, rotation);
     const sourcewidth = editor.imagewidth(oriented);

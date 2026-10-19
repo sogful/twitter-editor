@@ -13,9 +13,14 @@ window.photoeditor = window.photoeditor || {};
     crop: "Original",
     rotation: 0,
     croprect: null,
+    croplocked: true,
     cropdrag: null,
+    croppointers: new Map(),
+    croppinch: null,
     stickers: [],
     selectedsticker: "",
+    pendingsticker: "",
+    pendingstickerhistory: null,
     selectedgroup: null,
     category: "featured",
     recent: [],
@@ -39,9 +44,14 @@ window.photoeditor = window.photoeditor || {};
     state.crop = "Original";
     state.rotation = 0;
     state.croprect = null;
+    state.croplocked = true;
     state.cropdrag = null;
+    state.croppointers.clear();
+    state.croppinch = null;
     state.historyback = [];
     state.historyforward = [];
+    state.pendingsticker = "";
+    state.pendingstickerhistory = null;
     state.rangeediting = false;
     state.pointer = null;
     state.tool = "";

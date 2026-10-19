@@ -64,19 +64,45 @@
   editor.handletool = (name) => {
     const state = editor.state;
     if (name === "enhance") {
+      editor.discardpendingsticker();
       editor.pushhistory();
       state.enhanced = !state.enhanced;
       editor.render();
       return;
     }
     const next = state.tool === name ? "" : name;
+    if (next !== "sticker") editor.discardpendingsticker();
     state.tool = next;
     state.selectedgroup = null;
     state.croprect = next === "crop" ? editor.croprectfor("Original", state.source, 0) : null;
     state.crop = "Original";
     state.rotation = 0;
+    state.croplocked = true;
     state.cropdrag = null;
     editor.render();
+  };
+
+  editor.discardpendingsticker = () => {
+    const state = editor.state;
+    if (!state.pendingsticker) return false;
+    state.stickers = state.stickers.filter((item) => item.key !== state.pendingsticker);
+    if (state.pendingstickerhistory) {
+      state.historyback = state.pendingstickerhistory.back;
+      state.historyforward = state.pendingstickerhistory.forward;
+    }
+    state.pendingsticker = "";
+    state.pendingstickerhistory = null;
+    state.selectedsticker = "";
+    state.selectedgroup = null;
+    return true;
+  };
+
+  editor.confirmsticker = () => {
+    const state = editor.state;
+    state.pendingsticker = "";
+    state.pendingstickerhistory = null;
+    state.selectedsticker = "";
+    state.selectedgroup = null;
   };
 
   editor.remember = (sticker) => {
@@ -89,10 +115,17 @@
 
   editor.insertsticker = (sticker, keepopen = false) => {
     const state = editor.state;
+    if (state.pendingsticker) {
+      state.pendingsticker = "";
+      state.pendingstickerhistory = null;
+    }
+    const pendinghistory = {back: state.historyback.slice(), forward: state.historyforward.slice()};
     editor.pushhistory();
     const key = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}${Math.random()}`;
     state.stickers.push({key, sticker, x: 50, y: 50, size: 27, rotation: 0});
     state.selectedsticker = key;
+    state.pendingsticker = key;
+    state.pendingstickerhistory = pendinghistory;
     editor.remember(sticker);
     if (!keepopen) {
       state.tool = "";
@@ -107,7 +140,7 @@
       editor.insertsticker(sticker, true);
       return;
     }
-    editor.pushhistory();
+    if (state.pendingsticker !== state.selectedsticker) editor.pushhistory();
     state.stickers = state.stickers.map((item) =>
       item.key === state.selectedsticker ? {...item, sticker} : item
     );
@@ -125,6 +158,11 @@
   editor.removeselected = () => {
     const state = editor.state;
     if (!state.selectedsticker) return;
+    if (state.pendingsticker === state.selectedsticker) {
+      editor.discardpendingsticker();
+      editor.render();
+      return;
+    }
     editor.pushhistory();
     state.stickers = state.stickers.filter((item) => item.key !== state.selectedsticker);
     state.selectedsticker = "";
@@ -135,11 +173,13 @@
 
   editor.canceltool = () => {
     const state = editor.state;
+    editor.discardpendingsticker();
     state.tool = "";
     state.selectedgroup = null;
     state.crop = "Original";
     state.rotation = 0;
     state.croprect = null;
+    state.croplocked = true;
     state.cropdrag = null;
     state.pointer = null;
     editor.render();
@@ -160,6 +200,7 @@
     state.tool = "";
     state.crop = "Original";
     state.rotation = 0;
+    state.croplocked = true;
     state.croprect = null;
     state.cropdrag = null;
     editor.render();

@@ -7,6 +7,7 @@
     document.querySelector(".toolclose").addEventListener("click", () => {
       if (state.tool) editor.canceltool();
       else {
+        editor.discardpendingsticker();
         state.selectedsticker = "";
         state.selectedgroup = null;
         editor.render();
@@ -17,10 +18,14 @@
     document.querySelector(".donebutton").addEventListener("click", () => {
       if (state.tool === "crop") editor.applycrop();
       else if (state.tool === "sticker") {
+        editor.confirmsticker();
         state.tool = "";
         state.selectedgroup = null;
         editor.render();
-      } else editor.saveimage();
+      } else {
+        if (state.pendingsticker) editor.confirmsticker();
+        editor.saveimage();
+      }
     });
     input.addEventListener("change", (event) => {
       editor.openfile(event.target.files?.[0]);
@@ -32,13 +37,20 @@
     for (const button of document.querySelectorAll(".cropchoice")) {
       button.addEventListener("click", () => {
         state.crop = button.dataset.crop;
-        state.croprect = editor.croprectfor(state.crop, state.source, state.rotation);
+        state.croplocked = true;
+        state.croprect = editor.rectforratio(
+          state.croprect,
+          state.source,
+          state.rotation,
+          editor.cropratio(state.crop, editor.imagewidth(state.source), editor.imageheight(state.source), state.rotation)
+        );
         editor.render();
       });
     }
     document.querySelector(".rotatebutton").addEventListener("click", () => {
       state.rotation = (state.rotation + 90) % 360;
       state.croprect = editor.croprectfor(state.crop, state.source, state.rotation);
+      state.croplocked = true;
       editor.render();
     });
     const intensity = document.querySelector(".intensity");
@@ -51,7 +63,7 @@
     intensity.addEventListener("keydown", startintensity);
     intensity.addEventListener("input", (event) => {
       state.intensity = Number(event.target.value);
-      document.querySelector(".intensityvalue").textContent = String(state.intensity);
+      intensity.style.setProperty("--progress", `${state.intensity}%`);
       editor.renderpreview();
     });
     intensity.addEventListener("change", () => {

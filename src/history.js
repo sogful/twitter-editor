@@ -40,13 +40,18 @@
     state.enhanced = snapshot.enhanced;
     state.stickers = snapshot.stickers.map((item) => ({...item}));
     state.selectedsticker = snapshot.selectedsticker;
+    state.pendingsticker = "";
+    state.pendingstickerhistory = null;
     state.tool = "";
     state.croprect = null;
+    state.croplocked = true;
     state.crop = "Original";
     state.rotation = 0;
     state.selectedgroup = null;
     state.pointer = null;
     state.cropdrag = null;
+    state.croppointers.clear();
+    state.croppinch = null;
     editor.render();
   };
 
