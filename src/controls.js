@@ -49,8 +49,7 @@
     }
     document.querySelector(".rotatebutton").addEventListener("click", () => {
       state.rotation = (state.rotation + 90) % 360;
-      state.croprect = editor.croprectfor(state.crop, state.source, state.rotation);
-      state.croplocked = true;
+      if (state.croprect) state.croprect = editor.rotatecroprect(state.croprect);
       editor.render();
     });
     const intensity = document.querySelector(".intensity");

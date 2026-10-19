@@ -89,6 +89,13 @@
     };
   };
 
+  editor.rotatecroprect = (rect) => ({
+    x: 1 - rect.y - rect.height,
+    y: rect.x,
+    width: rect.height,
+    height: rect.width
+  });
+
   editor.cropcanvas = (image, rotation, rect) => {
     const oriented = editor.orientedimage(image, rotation);
     const sourcewidth = editor.imagewidth(oriented);
