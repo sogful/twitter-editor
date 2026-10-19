@@ -42,7 +42,15 @@
     box.style.width = `${boxwidth}px`;
     box.style.height = `${boxheight}px`;
     box.style.aspectRatio = String(ratio);
+    editor.rendercropview();
     if (state.tool === "crop" && state.croprect) editor.rendercropguide();
+  };
+
+  editor.rendercropview = () => {
+    const stage = document.querySelector(".cropstage");
+    if (!stage) return;
+    const view = editor.state.tool === "crop" ? editor.state.cropview : {scale: 1, x: 0, y: 0};
+    stage.style.transform = `translate(${view.x * 100}%, ${view.y * 100}%) scale(${view.scale})`;
   };
 
   editor.renderpreview = () => {

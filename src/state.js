@@ -15,6 +15,7 @@ window.photoeditor = window.photoeditor || {};
     croprect: null,
     croplocked: true,
     cropdrag: null,
+    cropview: {scale: 1, x: 0, y: 0},
     croppointers: new Map(),
     croppinch: null,
     stickers: [],
@@ -46,6 +47,7 @@ window.photoeditor = window.photoeditor || {};
     state.croprect = null;
     state.croplocked = true;
     state.cropdrag = null;
+    state.cropview = {scale: 1, x: 0, y: 0};
     state.croppointers.clear();
     state.croppinch = null;
     state.historyback = [];

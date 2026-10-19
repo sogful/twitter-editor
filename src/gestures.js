@@ -82,7 +82,7 @@
         y: ((points[0].y + points[1].y) / 2 - box.top) / box.height,
         midpointx: (points[0].x + points[1].x) / 2,
         midpointy: (points[0].y + points[1].y) / 2,
-        rect: {...state.croprect}
+        view: {...state.cropview}
       };
     });
     document.querySelector(".cropguide").addEventListener("pointermove", (event) => {
@@ -92,8 +92,8 @@
       const box = canvasbox.getBoundingClientRect();
       if (!box.width || !box.height) return;
       const start = drag.rect;
-      const dx = event.clientX - drag.x;
-      const dy = event.clientY - drag.y;
+      const dx = (event.clientX - drag.x) / state.cropview.scale;
+      const dy = (event.clientY - drag.y) / state.cropview.scale;
       if (drag.handle === "move") {
         state.croprect = {
           ...start,
@@ -130,8 +130,15 @@
       const box = canvasbox.getBoundingClientRect();
       const anchorx = Math.max(0, Math.min(1, (event.clientX - box.left) / box.width));
       const anchory = Math.max(0, Math.min(1, (event.clientY - box.top) / box.height));
-      state.croprect = editor.zoomcroprect(state.croprect, anchorx, anchory, event.deltaY < 0 ? 0.9 : 1.1);
-      editor.rendercropguide();
+      state.cropview = editor.panzoomcropview(
+        state.cropview,
+        anchorx,
+        anchory,
+        anchorx,
+        anchory,
+        state.cropview.scale * (event.deltaY < 0 ? 1.12 : 1 / 1.12)
+      );
+      editor.rendercropview();
     }, {passive: false});
 
     layers.addEventListener("pointerdown", (event) => {
@@ -189,16 +196,18 @@
             const midpointx = (points[0].x + points[1].x) / 2;
             const midpointy = (points[0].y + points[1].y) / 2;
             const distance = Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
-            const factor = state.croppinch.distance / Math.max(1, distance);
-            const anchorx = state.croppinch.x;
-            const anchory = state.croppinch.y;
-            const rect = editor.zoomcroprect(state.croppinch.rect, anchorx, anchory, factor);
-            rect.x += (midpointx - state.croppinch.midpointx) / box.width;
-            rect.y += (midpointy - state.croppinch.midpointy) / box.height;
-            rect.x = Math.max(0, Math.min(1 - rect.width, rect.x));
-            rect.y = Math.max(0, Math.min(1 - rect.height, rect.y));
-            state.croprect = rect;
-            editor.rendercropguide();
+            const targetx = (midpointx - box.left) / box.width;
+            const targety = (midpointy - box.top) / box.height;
+            const scale = state.croppinch.view.scale * distance / Math.max(1, state.croppinch.distance);
+            state.cropview = editor.panzoomcropview(
+              state.croppinch.view,
+              state.croppinch.x,
+              state.croppinch.y,
+              targetx,
+              targety,
+              scale
+            );
+            editor.rendercropview();
           }
           event.preventDefault();
           return;

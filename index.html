@@ -31,14 +31,16 @@
         </header>
         <section class="workspace" aria-label="Photo preview">
           <div class="canvasbox">
-            <canvas class="photocanvas" aria-label="Edited photo"></canvas>
-            <div class="cropguide off">
-              <button class="crophandle croptopleft" type="button" data-handle="topleft" aria-label="Resize crop from top left"></button>
-              <button class="crophandle croptopright" type="button" data-handle="topright" aria-label="Resize crop from top right"></button>
-              <button class="crophandle cropbottomleft" type="button" data-handle="bottomleft" aria-label="Resize crop from bottom left"></button>
-              <button class="crophandle cropbottomright" type="button" data-handle="bottomright" aria-label="Resize crop from bottom right"></button>
+            <div class="cropstage">
+              <canvas class="photocanvas" aria-label="Edited photo"></canvas>
+              <div class="cropguide off">
+                <button class="crophandle croptopleft" type="button" data-handle="topleft" aria-label="Resize crop from top left"></button>
+                <button class="crophandle croptopright" type="button" data-handle="topright" aria-label="Resize crop from top right"></button>
+                <button class="crophandle cropbottomleft" type="button" data-handle="bottomleft" aria-label="Resize crop from bottom left"></button>
+                <button class="crophandle cropbottomright" type="button" data-handle="bottomright" aria-label="Resize crop from bottom right"></button>
+              </div>
+              <div class="stickerlayers"></div>
             </div>
-            <div class="stickerlayers"></div>
             <div class="dropnotice off">Drop an image to edit it!</div>
           </div>
         </section>

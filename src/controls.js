@@ -50,6 +50,12 @@
     document.querySelector(".rotatebutton").addEventListener("click", () => {
       state.rotation = (state.rotation + 90) % 360;
       if (state.croprect) state.croprect = editor.rotatecroprect(state.croprect);
+      const view = state.cropview;
+      state.cropview = {
+        scale: view.scale,
+        x: Math.max(1 - view.scale, Math.min(0, -view.y)),
+        y: Math.max(1 - view.scale, Math.min(0, view.x))
+      };
       editor.render();
     });
     const intensity = document.querySelector(".intensity");

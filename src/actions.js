@@ -75,6 +75,7 @@
     state.tool = next;
     state.selectedgroup = null;
     state.croprect = next === "crop" ? editor.croprectfor("Original", state.source, 0) : null;
+    state.cropview = {scale: 1, x: 0, y: 0};
     state.crop = "Original";
     state.rotation = 0;
     state.croplocked = true;
@@ -180,6 +181,7 @@
     state.rotation = 0;
     state.croprect = null;
     state.croplocked = true;
+    state.cropview = {scale: 1, x: 0, y: 0};
     state.cropdrag = null;
     state.pointer = null;
     editor.render();
@@ -203,6 +205,7 @@
     state.croplocked = true;
     state.croprect = null;
     state.cropdrag = null;
+    state.cropview = {scale: 1, x: 0, y: 0};
     editor.render();
   };
 

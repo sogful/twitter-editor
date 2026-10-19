@@ -72,20 +72,14 @@
     };
   };
 
-  editor.zoomcroprect = (rect, anchorx, anchory, factor) => {
-    const maximum = Math.min(
-      rect.x < anchorx ? anchorx / (anchorx - rect.x) : Infinity,
-      rect.x + rect.width > anchorx ? (1 - anchorx) / (rect.x + rect.width - anchorx) : Infinity,
-      rect.y < anchory ? anchory / (anchory - rect.y) : Infinity,
-      rect.y + rect.height > anchory ? (1 - anchory) / (rect.y + rect.height - anchory) : Infinity
-    );
-    const minimum = Math.min(maximum, Math.max(0.035 / rect.width, 0.035 / rect.height));
-    const scale = Math.max(minimum, Math.min(maximum, factor));
+  editor.panzoomcropview = (view, anchorx, anchory, targetx, targety, scale) => {
+    const nextscale = Math.max(1, Math.min(6, scale));
+    const imagex = (anchorx - view.x) / view.scale;
+    const imagey = (anchory - view.y) / view.scale;
     return {
-      x: anchorx + (rect.x - anchorx) * scale,
-      y: anchory + (rect.y - anchory) * scale,
-      width: rect.width * scale,
-      height: rect.height * scale
+      scale: nextscale,
+      x: Math.max(1 - nextscale, Math.min(0, targetx - imagex * nextscale)),
+      y: Math.max(1 - nextscale, Math.min(0, targety - imagey * nextscale))
     };
   };
 
