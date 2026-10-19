@@ -69,7 +69,6 @@
     }
     state.tool = state.tool === name ? "" : name;
     if (name !== "sticker") state.selectedgroup = null;
-    if (name === "sticker") state.search = "";
     editor.render();
   };
 
@@ -137,6 +136,9 @@
         source: state.source,
         rotation: state.rotation,
         crop: state.crop,
+        cropzoom: state.cropzoom,
+        cropx: state.cropx,
+        cropy: state.cropy,
         filter,
         stickers: state.stickers
       });
@@ -184,11 +186,17 @@
     for (const button of document.querySelectorAll(".cropchoice")) {
       button.addEventListener("click", () => {
         state.crop = button.dataset.crop;
+        state.cropzoom = 1;
+        state.cropx = 50;
+        state.cropy = 50;
         editor.render();
       });
     }
     document.querySelector(".rotatebutton").addEventListener("click", () => {
       state.rotation = (state.rotation + 90) % 360;
+      state.cropzoom = 1;
+      state.cropx = 50;
+      state.cropy = 50;
       editor.render();
     });
     document.querySelector(".intensity").addEventListener("input", (event) => {
@@ -199,18 +207,6 @@
         state.intensity,
         state.enhanced
       );
-    });
-    document.querySelector(".searchinput").addEventListener("input", (event) => {
-      state.search = event.target.value;
-      document.querySelector(".clearsearch").classList.toggle("off", !state.search);
-      editor.rendergallery();
-    });
-    document.querySelector(".clearsearch").addEventListener("click", () => {
-      state.search = "";
-      document.querySelector(".searchinput").value = "";
-      document.querySelector(".clearsearch").classList.add("off");
-      editor.rendergallery();
-      document.querySelector(".searchinput").focus();
     });
     document.querySelector(".stickersize").addEventListener("input", (event) => {
       const selected = state.stickers.find((item) => item.key === state.selectedsticker);
@@ -233,6 +229,28 @@
         for (const layer of document.querySelectorAll(".stickerlayer")) layer.classList.remove("selected");
       }
     });
+    document.querySelector(".canvasbox").addEventListener("pointerdown", (event) => {
+      if (state.tool !== "crop" || !event.target.classList.contains("photocanvas")) return;
+      event.preventDefault();
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      } catch {}
+      state.croppointers.set(event.pointerId, {x: event.clientX, y: event.clientY});
+      if (state.croppointers.size > 1) {
+        const points = [...state.croppointers.values()];
+        state.cropgesture = {
+          distance: Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y),
+          zoom: state.cropzoom
+        };
+        state.croppan = null;
+      } else state.croppan = {pointer: event.pointerId, x: event.clientX, y: event.clientY};
+    });
+    document.querySelector(".canvasbox").addEventListener("wheel", (event) => {
+      if (state.tool !== "crop") return;
+      event.preventDefault();
+      state.cropzoom = Math.max(1, Math.min(4, state.cropzoom + (event.deltaY < 0 ? 0.12 : -0.12)));
+      editor.renderpreview();
+    }, {passive: false});
     document.querySelector(".stickerlayers").addEventListener("pointerdown", (event) => {
       const layer = event.target.closest(".stickerlayer");
       if (!layer) return;
@@ -257,14 +275,45 @@
         layer.style.top = `${item.y}%`;
       }
     });
+    window.addEventListener("pointermove", (event) => {
+      if (!state.croppointers.has(event.pointerId)) return;
+      const previous = state.croppointers.get(event.pointerId);
+      state.croppointers.set(event.pointerId, {x: event.clientX, y: event.clientY});
+      if (state.cropgesture && state.croppointers.size > 1) {
+        const points = [...state.croppointers.values()];
+        const distance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+        state.cropzoom = Math.max(1, Math.min(4, state.cropgesture.zoom * distance / Math.max(1, state.cropgesture.distance)));
+        editor.renderpreview();
+        return;
+      }
+      if (state.croppan?.pointer !== event.pointerId) return;
+      const box = document.querySelector(".canvasbox").getBoundingClientRect();
+      if (!box.width || !box.height) return;
+      state.cropx = Math.max(0, Math.min(100, state.cropx - ((event.clientX - previous.x) / box.width) * 100));
+      state.cropy = Math.max(0, Math.min(100, state.cropy - ((event.clientY - previous.y) / box.height) * 100));
+      state.croppan = {pointer: event.pointerId, x: event.clientX, y: event.clientY};
+      editor.renderpreview();
+    });
     window.addEventListener("pointerup", (event) => {
       if (state.pointer?.pointer === event.pointerId) state.pointer = null;
+      if (state.croppointers.has(event.pointerId)) {
+        state.croppointers.delete(event.pointerId);
+        state.cropgesture = null;
+        const remaining = [...state.croppointers.entries()][0];
+        state.croppan = remaining ? {pointer: remaining[0], x: remaining[1].x, y: remaining[1].y} : null;
+      }
     });
     window.addEventListener("pointercancel", () => {
       state.pointer = null;
+      state.croppointers.clear();
+      state.croppan = null;
+      state.cropgesture = null;
     });
     window.addEventListener("blur", () => {
       state.pointer = null;
+      state.croppointers.clear();
+      state.croppan = null;
+      state.cropgesture = null;
     });
     editor.root.addEventListener("dragover", (event) => {
       event.preventDefault();

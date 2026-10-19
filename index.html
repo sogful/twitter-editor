@@ -33,7 +33,12 @@
         <section class="workspace" aria-label="Photo preview">
           <div class="canvasbox">
             <canvas class="photocanvas" aria-label="Edited photo"></canvas>
-            <div class="cropguide off"></div>
+            <div class="cropguide off">
+              <span class="crophandle croptopleft"></span>
+              <span class="crophandle croptopright"></span>
+              <span class="crophandle cropbottomleft"></span>
+              <span class="crophandle cropbottomright"></span>
+            </div>
             <div class="stickerlayers"></div>
             <div class="dropnotice off">Drop an image to edit it</div>
           </div>
@@ -77,13 +82,6 @@
           </div>
         </section>
         <section class="stickerpanel off" aria-label="Sticker picker">
-          <div class="stickersearch">
-            <span class="icon iconsearch" aria-hidden="true"></span>
-            <input class="searchinput input" type="search" placeholder="Search stickers" aria-label="Search stickers" />
-            <button class="clearsearch button off" type="button" aria-label="Clear search">
-              <span class="icon iconclose" aria-hidden="true"></span>
-            </button>
-          </div>
           <div class="categorystrip" aria-label="Sticker categories"></div>
           <div class="variantstrip off" aria-label="Sticker variations"></div>
           <div class="stickergallery"></div>

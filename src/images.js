@@ -34,18 +34,26 @@
 
   /*//////////////////////////////////////////////////////////////////////*/
 
-  editor.cropimage = (image, crop, rotation) => {
+  editor.cropimage = (image, crop, rotation, zoom = 1, x = 50, y = 50) => {
     const rotated = editor.rotateimage(image, rotation);
     const ratio = editor.cropratio(crop, image.naturalWidth, image.naturalHeight, rotation);
     const rotatedratio = rotated.width / rotated.height;
-    const cropwidth = rotatedratio > ratio ? rotated.height * ratio : rotated.width;
-    const cropheight = rotatedratio > ratio ? rotated.height : rotated.width / ratio;
-    return {rotated, cropwidth, cropheight, left: (rotated.width - cropwidth) / 2, top: (rotated.height - cropheight) / 2};
+    const cropwidth = (rotatedratio > ratio ? rotated.height * ratio : rotated.width) / zoom;
+    const cropheight = (rotatedratio > ratio ? rotated.height : rotated.width / ratio) / zoom;
+    const roomx = Math.max(0, rotated.width - cropwidth);
+    const roomy = Math.max(0, rotated.height - cropheight);
+    return {
+      rotated,
+      cropwidth,
+      cropheight,
+      left: roomx * Math.max(0, Math.min(100, x)) / 100,
+      top: roomy * Math.max(0, Math.min(100, y)) / 100
+    };
   };
 
-  editor.exportimage = async ({photo, source, rotation, crop, filter, stickers}) => {
+  editor.exportimage = async ({photo, source, rotation, crop, cropzoom, cropx, cropy, filter, stickers}) => {
     const image = source || (await editor.loadimage(photo.local));
-    const cropdata = editor.cropimage(image, crop, rotation);
+    const cropdata = editor.cropimage(image, crop, rotation, cropzoom, cropx, cropy);
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
     canvas.width = Math.max(1, Math.round(cropdata.cropwidth));

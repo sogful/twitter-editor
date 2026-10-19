@@ -25,7 +25,7 @@
     const canvas = document.querySelector(".photocanvas");
     const box = document.querySelector(".canvasbox");
     if (!state.source || !canvas || !box) return;
-    const cropdata = editor.cropimage(state.source, state.crop, state.rotation);
+    const cropdata = editor.cropimage(state.source, state.crop, state.rotation, state.cropzoom, state.cropx, state.cropy);
     const width = Math.max(1, Math.round(cropdata.cropwidth));
     const height = Math.max(1, Math.round(cropdata.cropheight));
     canvas.width = width;
@@ -83,9 +83,10 @@
     if (!strip) return;
     strip.replaceChildren();
     const featured = state.catalog?.featured_sections?.[0];
+    const fire = editor.allstickers(state.catalog).find((item) => item.display_name === "Fire");
     const categories = [
-      {id: "featured", name: featured?.display_name || "Top picks", url: featured?.icon_image?.url, icon: "iconsticker"},
-      {id: "recent", name: "Recent", url: "assets/icons/history.svg", icon: "iconhistory"},
+      {id: "featured", name: featured?.display_name || "Top picks", url: featured?.icon_image?.url || editor.imageurl(fire, "size_1x"), icon: "iconsticker"},
+      {id: "recent", name: "Recent", icon: "iconhistory"},
       ...(state.catalog?.categories || []).map((item) => ({
         id: String(item.id),
         name: item.display_name,
@@ -155,17 +156,13 @@
     notice.classList.toggle("off", state.catalogstate === "ready" && items.length > 0);
     if (state.catalogstate === "loading") notice.textContent = "Loading stickers";
     else if (state.catalogstate === "error") notice.textContent = "Sticker catalog unavailable";
-    else if (state.search) notice.textContent = "No stickers found";
     else if (state.category === "recent") notice.textContent = "Stickers you add will appear here";
     else notice.textContent = "No stickers available";
     const selected = state.stickers.find((item) => item.key === state.selectedsticker);
     for (const item of items) {
       const sticker = item.sticker;
       if (!sticker) continue;
-      const button = editor.createstickerbutton(sticker, selected?.sticker.id === sticker.id, () => {
-        if (state.search) editor.insertsticker(sticker);
-        else editor.chooseitem(item);
-      });
+      const button = editor.createstickerbutton(sticker, selected?.sticker.id === sticker.id, () => editor.chooseitem(item));
       gallery.append(button);
     }
   };

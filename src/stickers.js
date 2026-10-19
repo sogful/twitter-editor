@@ -50,11 +50,6 @@
   editor.stickeritems = () => {
     const state = editor.state;
     const stickers = editor.allstickers(state.catalog);
-    if (state.search.trim()) {
-      return stickers
-        .filter((item) => item.display_name.toLowerCase().includes(state.search.trim().toLowerCase()))
-        .map((sticker) => ({sticker}));
-    }
     if (state.category === "featured") return state.catalog?.featured_sections?.[0]?.items || [];
     if (state.category === "recent") return editor.recentitems(state.recent, stickers);
     return state.catalog?.categories?.find((item) => String(item.id) === state.category)?.items || [];
