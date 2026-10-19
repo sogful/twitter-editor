@@ -168,7 +168,7 @@
       editor.render();
     });
     document.querySelector(".donebutton").addEventListener("click", () => {
-      if (["crop", "sticker", "alt"].includes(state.tool)) {
+      if (["crop", "sticker"].includes(state.tool)) {
         state.tool = "";
         state.selectedgroup = null;
         editor.render();
@@ -199,16 +199,6 @@
         state.intensity,
         state.enhanced
       );
-    });
-    document.querySelector(".altinput").addEventListener("input", (event) => {
-      state.alttext = event.target.value;
-      document.querySelector(".altcount").textContent = `${state.alttext.length}/1000`;
-      let badge = document.querySelector(".altbadge");
-      if (state.alttext && !badge) {
-        badge = editor.createelement("div", "altbadge", "ALT");
-        document.querySelector(".canvasbox").append(badge);
-      }
-      if (!state.alttext && badge) badge.remove();
     });
     document.querySelector(".searchinput").addEventListener("input", (event) => {
       state.search = event.target.value;

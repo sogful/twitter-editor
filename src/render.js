@@ -216,7 +216,6 @@
     root.classList.toggle("filtermode", state.tool === "filters");
     root.classList.toggle("cropmode", state.tool === "crop");
     root.classList.toggle("stickermode", state.tool === "sticker");
-    root.classList.toggle("altmode", state.tool === "alt");
     root.classList.toggle("dragging", state.dragover);
     document.querySelector(".title").textContent = state.tool === "filters"
       ? "Select a filter"
@@ -224,9 +223,7 @@
         ? "Move and scale"
         : state.tool === "sticker"
           ? "Select a sticker"
-          : state.tool === "alt"
-            ? "Add alt-text"
-            : "Edit photo";
+          : "Edit photo";
     document.querySelector(".toolclose").classList.toggle("off", !state.tool);
     document.querySelector(".donebutton").textContent = state.busy
       ? "Saving"
@@ -238,7 +235,6 @@
     document.querySelector(".donebutton").disabled = state.busy;
     document.querySelector(".filterpanel").classList.toggle("off", state.tool !== "filters");
     document.querySelector(".croppanel").classList.toggle("off", state.tool !== "crop");
-    document.querySelector(".altpanel").classList.toggle("off", state.tool !== "alt");
     document.querySelector(".stickerpanel").classList.toggle("off", state.tool !== "sticker");
     document.querySelector(".cropguide").classList.toggle("off", state.tool !== "crop");
     document.querySelector(".dropnotice").classList.toggle("off", !state.dragover);
@@ -255,8 +251,6 @@
     }
     document.querySelector(".intensity").value = state.intensity;
     document.querySelector(".intensityvalue").textContent = String(state.intensity);
-    document.querySelector(".altinput").value = state.alttext;
-    document.querySelector(".altcount").textContent = `${state.alttext.length}/1000`;
     document.querySelector(".toast").textContent = state.message;
     document.querySelector(".toast").classList.toggle("off", !state.message);
     editor.renderpreview();

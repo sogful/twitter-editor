@@ -12,7 +12,6 @@ window.photoeditor = window.photoeditor || {};
     enhanced: false,
     crop: "Original",
     rotation: 0,
-    alttext: "",
     stickers: [],
     selectedsticker: "",
     selectedgroup: null,
@@ -35,7 +34,6 @@ window.photoeditor = window.photoeditor || {};
     state.enhanced = false;
     state.crop = "Original";
     state.rotation = 0;
-    state.alttext = "";
     state.tool = "";
   };
 })(window.photoeditor);
