@@ -5,15 +5,17 @@
     strip.addEventListener("pointerdown", (event) => {
       if (event.button !== 0) return;
       drag = {pointer: event.pointerId, x: event.clientX, scroll: strip.scrollLeft, moved: false};
-      try {
-        strip.setPointerCapture(event.pointerId);
-      } catch {}
     });
     strip.addEventListener("pointermove", (event) => {
       if (!drag || drag.pointer !== event.pointerId) return;
       const delta = event.clientX - drag.x;
       if (Math.abs(delta) > 4) drag.moved = true;
       if (!drag.moved) return;
+      if (!strip.hasPointerCapture(event.pointerId)) {
+        try {
+          strip.setPointerCapture(event.pointerId);
+        } catch {}
+      }
       event.preventDefault();
       strip.classList.add("dragging");
       strip.scrollLeft = drag.scroll - delta;

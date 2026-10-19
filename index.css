@@ -162,8 +162,8 @@
   display: grid;
   width: 40px; height: 40px;
   flex: 0 0 auto;
-  margin-left: -6px;
-  place-items: center;
+  margin-left: -8px;
+  place-items: center; padding: 0;
   border-radius: 50%;
   color: white;
 }
@@ -174,7 +174,7 @@
   display: grid;
   width: 34px; height: 38px;
   flex: 0 0 auto;
-  place-items: center;
+  place-items: center; padding: 0;
   border-radius: 50%;
   color: white;
 }
@@ -183,8 +183,6 @@
   cursor: default;
 }
 .historybutton:disabled:hover {background: transparent}
-
-.iconredo {transform: scaleX(-1)}
 
 .donebutton {
   min-width: 62px;
@@ -376,7 +374,6 @@
 }
 .iconclose {
   width: 36px; height: 36px;
-  transform: translateX(-1px);
   mask-image: url("./assets/icons/close.svg");
 }
 .iconphoto {

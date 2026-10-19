@@ -134,8 +134,8 @@
     const featured = state.catalog?.featured_sections?.[0];
     const fire = editor.allstickers(state.catalog).find((item) => item.display_name === "Fire");
     const categories = [
-      {id: "featured", name: featured?.display_name || "Top picks", url: featured?.icon_image?.url || editor.imageurl(fire, "size_1x"), icon: "iconsticker"},
       {id: "recent", name: "Recent", icon: "iconhistory"},
+      {id: "featured", name: featured?.display_name || "Top picks", url: featured?.icon_image?.url || editor.imageurl(fire, "size_1x"), icon: "iconsticker"},
       ...(state.catalog?.categories || []).map((item) => ({
         id: String(item.id),
         name: item.display_name,
@@ -314,6 +314,7 @@
     const intensity = document.querySelector(".intensity");
     intensity.value = state.intensity;
     intensity.style.setProperty("--progress", `${state.intensity}%`);
+    document.querySelector(".intensityrow").classList.toggle("off", state.selectedfilter === "No Filter");
     document.querySelector(".toast").textContent = state.message;
     document.querySelector(".toast").classList.toggle("off", !state.message);
     editor.renderpreview();
