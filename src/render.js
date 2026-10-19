@@ -25,30 +25,28 @@
     const canvas = document.querySelector(".photocanvas");
     const box = document.querySelector(".canvasbox");
     if (!state.source || !canvas || !box) return;
-    const cropdata = editor.cropimage(state.source, state.crop, state.rotation, state.cropzoom, state.cropx, state.cropy);
-    const width = Math.max(1, Math.round(cropdata.cropwidth));
-    const height = Math.max(1, Math.round(cropdata.cropheight));
+    const source = editor.orientedimage(state.source, state.tool === "crop" ? state.rotation : 0);
+    const width = editor.imagewidth(source);
+    const height = editor.imageheight(source);
     canvas.width = width;
     canvas.height = height;
     canvas.style.filter = editor.filtercss(state.selectedfilter, state.intensity, state.enhanced);
     const context = canvas.getContext("2d");
-    context.drawImage(
-      cropdata.rotated,
-      cropdata.left,
-      cropdata.top,
-      cropdata.cropwidth,
-      cropdata.cropheight,
-      0,
-      0,
-      width,
-      height
-    );
+    context.drawImage(source, 0, 0, width, height);
     const ratio = width / height;
-    const boxwidth = Math.min(window.innerWidth * 0.94, window.innerHeight * 0.76 * ratio, 900);
-    const boxheight = boxwidth / ratio;
+    const workspace = document.querySelector(".workspace").getBoundingClientRect();
+    const boxwidth = Math.min(workspace.width - 20, 900, (workspace.height - 16) * ratio);
+    const boxheight = Math.min(workspace.height - 16, boxwidth / ratio);
     box.style.width = `${boxwidth}px`;
     box.style.height = `${boxheight}px`;
     box.style.aspectRatio = String(ratio);
+    if (state.tool === "crop" && state.croprect) {
+      const guide = document.querySelector(".cropguide");
+      guide.style.left = `${state.croprect.x * 100}%`;
+      guide.style.top = `${state.croprect.y * 100}%`;
+      guide.style.width = `${state.croprect.width * 100}%`;
+      guide.style.height = `${state.croprect.height * 100}%`;
+    }
   };
 
   /*//////////////////////////////////////////////////////////////////////*/
@@ -58,6 +56,7 @@
     const strip = document.querySelector(".filterstrip");
     if (!strip) return;
     strip.replaceChildren();
+    if (!state.photo) return;
     for (const preset of editor.filters) {
       const button = editor.createelement("button", "filtertile button");
       const preview = editor.createelement("span", "filterpreview");
@@ -184,25 +183,29 @@
       const layer = editor.createelement("div", "stickerlayer");
       const image = editor.makeimage(editor.imageurl(item.sticker, "size_3x"), "stickerimage", item.sticker.display_name);
       layer.dataset.key = item.key;
+      layer.setAttribute("aria-label", item.sticker.display_name);
       layer.classList.toggle("selected", item.key === state.selectedsticker);
       layer.style.left = `${item.x}%`;
       layer.style.top = `${item.y}%`;
       layer.style.width = `${item.size}%`;
       layer.style.transform = `translate(-50%, -50%) rotate(${item.rotation}deg)`;
-      layer.append(image);
+      if (image) {
+        const setratio = () => {
+          if (image.naturalWidth && image.naturalHeight) layer.style.aspectRatio = `${image.naturalWidth} / ${image.naturalHeight}`;
+        };
+        image.addEventListener("load", setratio, {once: true});
+        setratio();
+        layer.append(image);
+      }
+      for (const handle of ["topleft", "top", "topright", "left", "right", "bottomleft", "bottom", "bottomright"]) {
+        const control = editor.createelement("button", `stickerhandle stickerhandle${handle}`);
+        control.type = "button";
+        control.dataset.handle = handle;
+        control.setAttribute("aria-label", `Resize ${item.sticker.display_name} from ${handle}`);
+        layer.append(control);
+      }
       layers.append(layer);
     }
-  };
-
-  editor.renderselection = () => {
-    const state = editor.state;
-    const selected = state.stickers.find((item) => item.key === state.selectedsticker);
-    const bar = document.querySelector(".selectionbar");
-    if (!bar) return;
-    bar.classList.toggle("off", !selected);
-    if (!selected) return;
-    document.querySelector(".selectionname").textContent = selected.sticker.display_name;
-    document.querySelector(".stickersize").value = selected.size;
   };
 
   /*//////////////////////////////////////////////////////////////////////*/
@@ -213,6 +216,7 @@
     root.classList.toggle("filtermode", state.tool === "filters");
     root.classList.toggle("cropmode", state.tool === "crop");
     root.classList.toggle("stickermode", state.tool === "sticker");
+    root.classList.toggle("empty", !state.photo);
     root.classList.toggle("dragging", state.dragover);
     document.querySelector(".title").textContent = state.tool === "filters"
       ? "Select a filter"
@@ -221,7 +225,12 @@
         : state.tool === "sticker"
           ? "Select a sticker"
           : "Edit photo";
-    document.querySelector(".toolclose").classList.toggle("off", !state.tool);
+    document.querySelector(".toolclose").setAttribute("aria-label", state.tool ? "Close editing tool" : "Back");
+    document.querySelector(".toolclose").title = state.tool ? "Close editing tool" : "Back";
+    document.querySelector(".startscreen").classList.toggle("off", Boolean(state.photo));
+    document.querySelector(".donebutton").disabled = state.busy || !state.photo;
+    document.querySelector(".undo").disabled = !state.historyback.length;
+    document.querySelector(".redo").disabled = !state.historyforward.length;
     document.querySelector(".donebutton").textContent = state.busy
       ? "Saving"
       : state.tool === "filters"
@@ -229,7 +238,6 @@
         : state.tool === "crop"
           ? "Apply"
           : "Done";
-    document.querySelector(".donebutton").disabled = state.busy;
     document.querySelector(".filterpanel").classList.toggle("off", state.tool !== "filters");
     document.querySelector(".croppanel").classList.toggle("off", state.tool !== "crop");
     document.querySelector(".stickerpanel").classList.toggle("off", state.tool !== "sticker");
@@ -254,6 +262,5 @@
     editor.renderfilters();
     editor.renderstickers();
     editor.renderlayers();
-    editor.renderselection();
   };
 })(window.photoeditor);

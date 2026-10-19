@@ -8,23 +8,29 @@
       image.src = url;
     });
 
+  editor.imagewidth = (image) => image?.naturalWidth || image?.width || 0;
+  editor.imageheight = (image) => image?.naturalHeight || image?.height || 0;
+
   /*//////////////////////////////////////////////////////////////////////*/
 
   editor.rotateimage = (image, rotation) => {
-    const sideways = Math.abs(rotation % 180) === 90;
-    const width = sideways ? image.naturalHeight : image.naturalWidth;
-    const height = sideways ? image.naturalWidth : image.naturalHeight;
+    const originalwidth = editor.imagewidth(image);
+    const originalheight = editor.imageheight(image);
+    const angle = ((rotation % 360) + 360) % 360;
+    const sideways = angle === 90 || angle === 270;
+    const width = sideways ? originalheight : originalwidth;
+    const height = sideways ? originalwidth : originalheight;
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
     canvas.width = width;
     canvas.height = height;
-    if (rotation % 360 === 90) {
+    if (angle === 90) {
       context.translate(width, 0);
       context.rotate(Math.PI / 2);
-    } else if (rotation % 360 === 180 || rotation % 360 === -180) {
+    } else if (angle === 180) {
       context.translate(width, height);
       context.rotate(Math.PI);
-    } else if (rotation % 360 === 270 || rotation % 360 === -90) {
+    } else if (angle === 270) {
       context.translate(0, height);
       context.rotate(-Math.PI / 2);
     }
@@ -32,55 +38,55 @@
     return canvas;
   };
 
-  /*//////////////////////////////////////////////////////////////////////*/
+  editor.orientedimage = (image, rotation) => rotation ? editor.rotateimage(image, rotation) : image;
 
-  editor.cropimage = (image, crop, rotation, zoom = 1, x = 50, y = 50) => {
-    const rotated = editor.rotateimage(image, rotation);
-    const ratio = editor.cropratio(crop, image.naturalWidth, image.naturalHeight, rotation);
-    const rotatedratio = rotated.width / rotated.height;
-    const cropwidth = (rotatedratio > ratio ? rotated.height * ratio : rotated.width) / zoom;
-    const cropheight = (rotatedratio > ratio ? rotated.height : rotated.width / ratio) / zoom;
-    const roomx = Math.max(0, rotated.width - cropwidth);
-    const roomy = Math.max(0, rotated.height - cropheight);
-    return {
-      rotated,
-      cropwidth,
-      cropheight,
-      left: roomx * Math.max(0, Math.min(100, x)) / 100,
-      top: roomy * Math.max(0, Math.min(100, y)) / 100
-    };
+  editor.croprectfor = (name, image, rotation) => {
+    const oriented = editor.orientedimage(image, rotation);
+    const width = editor.imagewidth(oriented);
+    const height = editor.imageheight(oriented);
+    const imageratio = width / height;
+    const ratio = editor.cropratio(name, editor.imagewidth(image), editor.imageheight(image), rotation);
+    const rectwidth = ratio >= imageratio ? 1 : ratio / imageratio;
+    const rectheight = ratio >= imageratio ? imageratio / ratio : 1;
+    return {x: (1 - rectwidth) / 2, y: (1 - rectheight) / 2, width: rectwidth, height: rectheight};
   };
 
-  editor.exportimage = async ({photo, source, rotation, crop, cropzoom, cropx, cropy, filter, stickers}) => {
-    const image = source || (await editor.loadimage(photo.local));
-    const cropdata = editor.cropimage(image, crop, rotation, cropzoom, cropx, cropy);
+  editor.cropcanvas = (image, rotation, rect) => {
+    const oriented = editor.orientedimage(image, rotation);
+    const sourcewidth = editor.imagewidth(oriented);
+    const sourceheight = editor.imageheight(oriented);
+    const left = Math.max(0, Math.round(sourcewidth * rect.x));
+    const top = Math.max(0, Math.round(sourceheight * rect.y));
+    const width = Math.max(1, Math.min(sourcewidth - left, Math.round(sourcewidth * rect.width)));
+    const height = Math.max(1, Math.min(sourceheight - top, Math.round(sourceheight * rect.height)));
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
-    canvas.width = Math.max(1, Math.round(cropdata.cropwidth));
-    canvas.height = Math.max(1, Math.round(cropdata.cropheight));
+    canvas.width = width;
+    canvas.height = height;
+    context.drawImage(oriented, left, top, width, height, 0, 0, width, height);
+    return canvas;
+  };
+
+  editor.exportimage = async ({source, filter, stickers}) => {
+    const width = editor.imagewidth(source);
+    const height = editor.imageheight(source);
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    canvas.width = width;
+    canvas.height = height;
     context.filter = filter;
-    context.drawImage(
-      cropdata.rotated,
-      cropdata.left,
-      cropdata.top,
-      cropdata.cropwidth,
-      cropdata.cropheight,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
+    context.drawImage(source, 0, 0, width, height);
     context.filter = "none";
     for (const item of stickers) {
       const url = editor.imageurl(item.sticker, "raw");
       if (!url) continue;
       const stickerimage = await editor.loadimage(url);
-      const width = (canvas.width * item.size) / 100;
-      const height = (width * stickerimage.naturalHeight) / stickerimage.naturalWidth;
+      const stickerwidth = (canvas.width * item.size) / 100;
+      const stickerheight = (stickerwidth * stickerimage.naturalHeight) / stickerimage.naturalWidth;
       context.save();
       context.translate((canvas.width * item.x) / 100, (canvas.height * item.y) / 100);
       context.rotate((item.rotation * Math.PI) / 180);
-      context.drawImage(stickerimage, -width / 2, -height / 2, width, height);
+      context.drawImage(stickerimage, -stickerwidth / 2, -stickerheight / 2, stickerwidth, stickerheight);
       context.restore();
     }
     return new Promise((resolve, reject) => {

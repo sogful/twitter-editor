@@ -12,18 +12,17 @@ window.photoeditor = window.photoeditor || {};
     enhanced: false,
     crop: "Original",
     rotation: 0,
-    cropzoom: 1,
-    cropx: 50,
-    cropy: 50,
-    croppointers: new Map(),
-    croppan: null,
-    cropgesture: null,
+    croprect: null,
+    cropdrag: null,
     stickers: [],
     selectedsticker: "",
     selectedgroup: null,
     category: "featured",
     recent: [],
+    historyback: [],
+    historyforward: [],
     busy: false,
+    rangeediting: false,
     message: "",
     dragover: false,
     pointer: null
@@ -39,12 +38,12 @@ window.photoeditor = window.photoeditor || {};
     state.enhanced = false;
     state.crop = "Original";
     state.rotation = 0;
-    state.cropzoom = 1;
-    state.cropx = 50;
-    state.cropy = 50;
-    state.croppointers.clear();
-    state.croppan = null;
-    state.cropgesture = null;
+    state.croprect = null;
+    state.cropdrag = null;
+    state.historyback = [];
+    state.historyforward = [];
+    state.rangeediting = false;
+    state.pointer = null;
     state.tool = "";
   };
 })(window.photoeditor);
