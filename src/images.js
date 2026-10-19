@@ -116,7 +116,7 @@
     context.drawImage(source, 0, 0, width, height);
     await editor.applyfilter(canvas, filter, intensity, enhanced);
     for (const item of stickers) {
-      const url = editor.imageurl(item.sticker, "raw");
+      const url = editor.imageurl(item.sticker, "original");
       if (!url) continue;
       const stickerimage = await editor.loadimage(url);
       const stickerwidth = (canvas.width * item.size) / 100;

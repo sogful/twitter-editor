@@ -13,6 +13,9 @@
     const image = document.createElement("img");
     image.className = classname;
     if (crossorigin) image.crossOrigin = "anonymous";
+    image.decoding = "async";
+    if (classname === "stickerthumb" || classname === "categoryicon") image.loading = "lazy";
+    if (classname === "stickerthumb") image.fetchPriority = "low";
     image.src = url;
     image.alt = alt || "";
     image.draggable = false;
@@ -179,106 +182,6 @@
     }
   };
 
-  /*//////////////////////////////////////////////////////////////////////*/
-
-  editor.rendercategories = () => {
-    const state = editor.state;
-    const strip = document.querySelector(".categorystrip");
-    if (!strip) return;
-    strip.replaceChildren();
-    const featured = state.catalog?.featured_sections?.[0];
-    const fire = editor.allstickers(state.catalog).find((item) => item.display_name === "Fire");
-    const categories = [
-      {id: "recent", name: "Recent", icon: "iconhistory"},
-      {id: "featured", name: featured?.display_name || "Top picks", url: featured?.icon_image?.url || editor.imageurl(fire, "size_1x"), icon: "iconsticker"},
-      ...(state.catalog?.categories || []).map((item) => ({
-        id: String(item.id),
-        name: item.display_name,
-        url: item.icon_image?.url,
-        icon: "iconsticker"
-      }))
-    ];
-    for (const item of categories) {
-      const button = editor.createelement("button", "categorybutton button");
-      const image = item.url ? editor.makeimage(item.url, "categoryicon", "") : null;
-      const label = editor.createelement("span", "categorylabel", item.name);
-      button.type = "button";
-      button.title = item.name;
-      button.setAttribute("aria-label", item.name);
-      button.setAttribute("aria-pressed", String(state.category === item.id));
-      button.classList.toggle("selected", state.category === item.id);
-      button.append(image || editor.makeicon(item.icon), label);
-      button.addEventListener("click", () => {
-        state.category = item.id;
-        state.selectedgroup = null;
-        editor.renderstickers();
-      });
-      strip.append(button);
-    }
-  };
-
-  /*//////////////////////////////////////////////////////////////////////*/
-
-  editor.createstickerbutton = (sticker, selected, action) => {
-    const button = editor.createelement("button", "stickerchoice button");
-    const image = editor.makeimage(editor.imageurl(sticker, "size_1x"), "stickerthumb", sticker.display_name);
-    button.type = "button";
-    button.title = sticker.display_name;
-    button.setAttribute("aria-label", sticker.display_name);
-    button.setAttribute("aria-pressed", String(selected));
-    button.classList.toggle("selected", selected);
-    if (image) button.append(image);
-    button.addEventListener("click", action);
-    return button;
-  };
-
-  editor.rendervariants = () => {
-    const state = editor.state;
-    const strip = document.querySelector(".variantstrip");
-    if (!strip) return;
-    strip.replaceChildren();
-    const variants = state.selectedgroup?.variant_stickers || [];
-    strip.classList.toggle("off", !variants.length);
-    if (!variants.length) return;
-    const current = state.stickers.find((item) => item.key === state.selectedsticker);
-    const stickers = [state.selectedgroup.sticker, ...variants];
-    for (const sticker of stickers) {
-      strip.append(
-        editor.createstickerbutton(sticker, current?.sticker.id === sticker.id, () => editor.replacesticker(sticker))
-      );
-    }
-  };
-
-  editor.rendergallery = () => {
-    const state = editor.state;
-    const gallery = document.querySelector(".stickergallery");
-    const notice = document.querySelector(".stickerstate");
-    if (!gallery || !notice) return;
-    gallery.replaceChildren();
-    const items = editor.stickeritems();
-    gallery.classList.toggle("off", state.catalogstate !== "ready" || !items.length);
-    notice.classList.toggle("off", state.catalogstate === "ready" && items.length > 0);
-    if (state.catalogstate === "loading") notice.textContent = "Loading stickers";
-    else if (state.catalogstate === "error") notice.textContent = "Sticker catalog unavailable";
-    else if (state.category === "recent") notice.textContent = "Stickers you add will appear here";
-    else notice.textContent = "No stickers available";
-    const selected = state.stickers.find((item) => item.key === state.selectedsticker);
-    for (const item of items) {
-      const sticker = item.sticker;
-      if (!sticker) continue;
-      const button = editor.createstickerbutton(sticker, selected?.sticker.id === sticker.id, () => editor.chooseitem(item));
-      gallery.append(button);
-    }
-  };
-
-  editor.renderstickers = () => {
-    editor.rendercategories();
-    editor.rendervariants();
-    editor.rendergallery();
-  };
-
-  /*//////////////////////////////////////////////////////////////////////*/
-
   editor.renderlayers = () => {
     const state = editor.state;
     const layers = document.querySelector(".stickerlayers");
@@ -286,7 +189,7 @@
     layers.replaceChildren();
     for (const item of state.stickers) {
       const layer = editor.createelement("div", "stickerlayer");
-      const image = editor.makeimage(editor.imageurl(item.sticker, "size_3x"), "stickerimage", item.sticker.display_name, true);
+      const image = editor.makeimage(editor.imageurl(item.sticker, "original"), "stickerimage", item.sticker.display_name, true);
       layer.dataset.key = item.key;
       layer.setAttribute("aria-label", item.sticker.display_name);
       layer.classList.toggle("selected", item.key === state.selectedsticker);

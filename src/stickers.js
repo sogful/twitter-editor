@@ -1,4 +1,6 @@
 ((editor) => {
+  const emptyindex = {all: [], lookup: new Map(), categories: new Map(), fire: null};
+
   editor.getstoredrecent = () => {
     try {
       const value = JSON.parse(localStorage.getItem("recentstickers") || "[]");
@@ -10,48 +12,69 @@
 
   /*//////////////////////////////////////////////////////////////////////*/
 
-  editor.allstickers = (catalog) => {
-    const result = [];
-    const seen = new Set();
+  editor.stickerindexes = new WeakMap();
+  editor.stickerindex = (catalog) => {
+    if (!catalog || typeof catalog !== "object") return emptyindex;
+    let index = editor.stickerindexes.get(catalog);
+    if (index) return index;
+    const all = [];
+    const lookup = new Map();
+    const categories = new Map();
     const add = (sticker) => {
-      if (!sticker || seen.has(String(sticker.id))) return;
-      seen.add(String(sticker.id));
-      result.push(sticker);
+      if (!sticker || lookup.has(String(sticker.id))) return;
+      lookup.set(String(sticker.id), sticker);
+      all.push(sticker);
     };
-    for (const category of catalog?.categories || []) {
+    for (const category of catalog.categories || []) {
+      categories.set(String(category.id), category);
       for (const item of category.items || []) {
         add(item.sticker);
         for (const variant of item.variant_stickers || []) add(variant);
       }
     }
-    for (const section of catalog?.featured_sections || []) {
+    for (const section of catalog.featured_sections || []) {
       for (const item of section.items || []) {
         add(item.sticker);
         for (const variant of item.variant_stickers || []) add(variant);
       }
     }
-    return result;
+    index = {all, lookup, categories, fire: all.find((item) => item.display_name === "Fire")};
+    editor.stickerindexes.set(catalog, index);
+    return index;
   };
+
+  editor.allstickers = (catalog) => editor.stickerindex(catalog).all;
 
   /*//////////////////////////////////////////////////////////////////////*/
 
   editor.imageurl = (sticker, size) => {
     const images = sticker?.images;
-    return images?.svg?.url || images?.[size]?.url || images?.size_3x?.url || images?.raw?.url || "";
+    if (size === "preview") {
+      return images?.size_1x?.url || images?.svg?.url || images?.size_2x?.url || images?.size_3x?.url || images?.raw?.url || "";
+    }
+    if (size === "original") {
+      return images?.svg?.url || images?.raw?.url || images?.size_4x?.url || images?.size_3x?.url || images?.size_2x?.url || images?.size_1x?.url || "";
+    }
+    return images?.[size]?.url || images?.svg?.url || images?.raw?.url || images?.size_3x?.url || "";
   };
 
-  editor.recentitems = (ids, stickers) => {
-    const lookup = new Map(stickers.map((sticker) => [String(sticker.id), sticker]));
-    return ids.map((id) => lookup.get(String(id))).filter(Boolean).map((sticker) => ({sticker}));
+  editor.recentcache = {catalog: null, ids: null, items: []};
+  editor.recentitems = (ids, catalog) => {
+    const cache = editor.recentcache;
+    if (cache.catalog === catalog && cache.ids === ids) return cache.items;
+    const lookup = editor.stickerindex(catalog).lookup;
+    cache.catalog = catalog;
+    cache.ids = ids;
+    cache.items = ids.map((id) => lookup.get(String(id))).filter(Boolean).map((sticker) => ({sticker}));
+    return cache.items;
   };
 
   /*//////////////////////////////////////////////////////////////////////*/
 
   editor.stickeritems = () => {
     const state = editor.state;
-    const stickers = editor.allstickers(state.catalog);
     if (state.category === "featured") return state.catalog?.featured_sections?.[0]?.items || [];
-    if (state.category === "recent") return editor.recentitems(state.recent, stickers);
-    return state.catalog?.categories?.find((item) => String(item.id) === state.category)?.items || [];
+    if (state.category === "recent") return editor.recentitems(state.recent, state.catalog);
+    return editor.stickerindex(state.catalog).categories.get(state.category)?.items || [];
   };
 })(window.photoeditor);

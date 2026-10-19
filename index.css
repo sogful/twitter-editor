@@ -607,10 +607,16 @@
   scrollbar-width: none;
 }
 
+.galleryspace {
+  grid-column: 1 / -1;
+  pointer-events: none;
+}
+
 .stickerchoice {
   display: grid;
   min-width: 0;
   aspect-ratio: 1;
+  contain: layout paint style;
   place-items: center;
   padding: 8px;
   border-radius: 12px;
@@ -620,6 +626,8 @@
 .stickerchoice.selected {
   background: rgba(255,255,255,0.09);
 }
+
+.stickerchoice:focus-visible {outline-offset: -3px}
 
 .filterstrip.dragging,
 .categorystrip.dragging,
