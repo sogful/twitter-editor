@@ -2,17 +2,19 @@
   editor.setmessage = (message) => {
     clearTimeout(editor.messagetimer);
     editor.state.message = message;
-    editor.render();
+    const toast = document.querySelector(".toast");
+    toast.textContent = message;
+    toast.classList.toggle("off", !message);
     editor.messagetimer = setTimeout(() => {
       editor.state.message = "";
-      editor.render();
+      toast.textContent = "";
+      toast.classList.add("off");
     }, 2800);
   };
 
   /*//////////////////////////////////////////////////////////////////////*/
 
   editor.openfile = async (file) => {
-    const state = editor.state;
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       editor.setmessage("Choose an image file.");
@@ -21,24 +23,32 @@
     const local = URL.createObjectURL(file);
     try {
       const source = await editor.loadimage(local);
-      if (state.photo.local.startsWith("blob:")) URL.revokeObjectURL(state.photo.local);
-      state.photo = {local, name: file.name.replace(/\.[^.]+$/, "") || "photo"};
-      state.source = source;
-      editor.resettools();
-      editor.render();
+      editor.setphoto(local, file.name.replace(/\.[^.]+$/, "") || "photo", source);
     } catch (error) {
       URL.revokeObjectURL(local);
       editor.setmessage(error.message || "The image could not be opened.");
     }
   };
 
-  editor.resetphoto = async () => {
+  editor.setphoto = (local, name, source) => {
     const state = editor.state;
-    if (state.photo.local.startsWith("blob:")) URL.revokeObjectURL(state.photo.local);
-    state.photo = {local: "assets/images/GOODsample.webp", name: "sample"};
-    state.source = await editor.loadimage(state.photo.local);
+    if (state.photo?.local.startsWith("blob:")) URL.revokeObjectURL(state.photo.local);
+    state.photo = {local, name};
+    state.source = source;
     editor.resettools();
+    document.querySelector(".startscreen").classList.add("off");
+    editor.root.classList.remove("off");
     editor.render();
+  };
+
+  editor.usesample = async () => {
+    const local = "assets/images/GOODsample.webp";
+    try {
+      const source = await editor.loadimage(local);
+      editor.setphoto(local, "sample", source);
+    } catch (error) {
+      editor.setmessage(error.message || "The sample photo could not be opened.");
+    }
   };
 
   editor.setfilter = (name) => {
@@ -150,8 +160,13 @@
   editor.bind = () => {
     const state = editor.state;
     const input = document.querySelector(".fileinput");
-    document.querySelector(".backbutton").addEventListener("click", editor.resetphoto);
-    document.querySelector(".openbutton").addEventListener("click", () => input.click());
+    document.querySelector(".openimage").addEventListener("click", () => input.click());
+    document.querySelector(".usesample").addEventListener("click", editor.usesample);
+    document.querySelector(".toolclose").addEventListener("click", () => {
+      state.tool = "";
+      state.selectedgroup = null;
+      editor.render();
+    });
     document.querySelector(".donebutton").addEventListener("click", () => {
       if (["crop", "sticker", "alt"].includes(state.tool)) {
         state.tool = "";

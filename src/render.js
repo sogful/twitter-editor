@@ -227,6 +227,7 @@
           : state.tool === "alt"
             ? "Add alt-text"
             : "Edit photo";
+    document.querySelector(".toolclose").classList.toggle("off", !state.tool);
     document.querySelector(".donebutton").textContent = state.busy
       ? "Saving"
       : state.tool === "filters"

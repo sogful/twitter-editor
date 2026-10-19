@@ -2,7 +2,7 @@ window.photoeditor = window.photoeditor || {};
 
 ((editor) => {
   editor.state = {
-    photo: {local: "assets/images/GOODsample.webp", name: "sample"},
+    photo: null,
     source: null,
     catalog: null,
     catalogstate: "loading",

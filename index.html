@@ -11,16 +11,23 @@
   </head>
   <body class="page">
     <div class="application">
-      <main class="editor">
+      <section class="startscreen" aria-label="Choose a photo">
+        <div class="startcontent">
+          <span class="starticon icon iconphoto" aria-hidden="true"></span>
+          <h1 class="starttitle">Add a photo</h1>
+          <p class="startmessage">Open an image or try the sample photo.</p>
+          <div class="startactions">
+            <button class="startbutton primarybutton button openimage" type="button">Open image</button>
+            <button class="startbutton secondarybutton button usesample" type="button">Use a sample</button>
+          </div>
+        </div>
+      </section>
+      <main class="editor off">
         <header class="topbar">
-          <button class="backbutton button" type="button" aria-label="Back to sample">
-            <span class="icon iconback" aria-hidden="true"></span>
-            <span class="backlabel">Back</span>
+          <button class="toolclose button off" type="button" aria-label="Close editing tool" title="Close editing tool">
+            <span class="icon iconclose" aria-hidden="true"></span>
           </button>
           <h1 class="title">Edit photo</h1>
-          <button class="openbutton button" type="button" aria-label="Open another image" title="Open another image">
-            <span class="icon iconphoto" aria-hidden="true"></span>
-          </button>
           <button class="donebutton button" type="button">Done</button>
         </header>
         <section class="workspace" aria-label="Photo preview">
@@ -107,8 +114,8 @@
           </nav>
         </footer>
         <input class="fileinput input" type="file" accept="image/*" aria-label="Choose an image" />
-        <div class="toast off" role="status"></div>
       </main>
+      <div class="toast off" role="status"></div>
     </div>
     <script defer src="./src/state.js"></script>
     <script defer src="./src/filters.js"></script>

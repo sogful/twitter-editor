@@ -12,8 +12,106 @@
 }
 
 .application {
+  position: relative;
   width: 100%;
   height: 100%;
+}
+
+.startscreen {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  padding: 24px;
+  background: #000000;
+}
+
+.startcontent {
+  display: flex;
+  width: min(100%, 380px);
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+}
+
+.starticon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 24px;
+  color: #1d9bf0;
+}
+
+.starttitle {
+  margin: 0;
+  color: #f7f9f9;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.startmessage {
+  margin: 10px 0 24px;
+  color: #71767b;
+  font-size: 15px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.startactions {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.startbutton {
+  width: 100%;
+  height: 52px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.primarybutton {
+  background: #1d9bf0;
+  color: #ffffff;
+}
+
+.primarybutton:hover {
+  background: #1a8cd8;
+}
+
+.secondarybutton {
+  border-color: #536471;
+  color: #eff3f4;
+}
+
+.secondarybutton:hover {
+  background: rgba(239,243,244,0.1);
+}
+
+.startbutton.primarybutton {
+  border: 1px solid transparent;
+  background: #1d9bf0;
+}
+
+.startbutton.primarybutton:hover {
+  background: #1a8cd8;
+}
+
+.startbutton.secondarybutton {
+  border: 1px solid #536471;
+  color: #eff3f4;
+}
+
+.startbutton.secondarybutton:hover {
+  background: rgba(239,243,244,0.1);
+}
+
+.starticon.icon {
+  width: 48px;
+  height: 48px;
 }
 
 .editor {
@@ -68,16 +166,6 @@
   background: #000000;
 }
 
-.backbutton {
-  display: inline-flex;
-  min-width: 68px;
-  align-items: center;
-  padding: 6px 2px;
-  gap: 6px;
-  color: #eff3f4;
-  font-size: 14px;
-}
-
 .title {
   flex: 1;
   min-width: 0;
@@ -90,7 +178,7 @@
   white-space: nowrap;
 }
 
-.openbutton {
+.toolclose {
   display: grid;
   width: 40px;
   height: 40px;
@@ -100,9 +188,9 @@
   color: #ffffff;
 }
 
-.openbutton:hover,
+.toolclose:hover,
 .smallcontrol:hover,
-.backbutton:hover {
+.donebutton:hover {
   background: #202327;
 }
 
@@ -276,12 +364,6 @@
   mask-position: center;
   mask-repeat: no-repeat;
   mask-size: contain;
-}
-
-.iconback {
-  width: 20px;
-  height: 20px;
-  mask-image: url("./assets/icons/back.svg");
 }
 
 .iconclose {
@@ -732,14 +814,6 @@
     height: calc(54px + env(safe-area-inset-top));
     padding-right: 12px;
     padding-left: 12px;
-  }
-
-  .backbutton {
-    min-width: 42px;
-  }
-
-.backlabel {
-    display: none;
   }
 
   .title {
