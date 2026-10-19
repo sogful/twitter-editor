@@ -572,10 +572,6 @@
   mask-image: url("./assets/icons/history.svg");
 }
 
-.icontrash {
-  mask-image: url("./assets/icons/trash.svg");
-}
-
 /*//////////////////////////////////////////////////////////////////////*/
 
 .filterpanel,
@@ -665,8 +661,7 @@
   font-size: 13px;
 }
 
-.intensity,
-.stickersize {
+.intensity {
   flex: 1;
   accent-color: #1d9bf0;
 }
