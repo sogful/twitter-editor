@@ -222,6 +222,8 @@
       if (!item?.sticker) continue;
       const sticker = item.sticker;
       const button = editor.createstickerbutton(sticker, false, () => editor.chooseitem(item, button));
+      button.style.boxSizing = "border-box";
+      button.style.height = `${cell}px`;
       fragment.append(button);
     }
     spacer(rows - last);
